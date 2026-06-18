@@ -114,8 +114,34 @@ class UserProfileUpdateForm(forms.ModelForm):
         ]
 
         widgets = {
-            'full_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'email': forms.EmailInput(attrs={'class': 'form-control'}),
-            'phone_number': forms.TextInput(attrs={'class': 'form-control'}),
-            'service_area': forms.TextInput(attrs={'class': 'form-control'}),
+            'full_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter full name'
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter email address'
+            }),
+            'phone_number': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Required for rescuers'
+            }),
+            'service_area': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Required for shelters. Example: Colombo'
+            }),
         }
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        phone_number = cleaned_data.get('phone_number')
+        service_area = cleaned_data.get('service_area')
+
+        if self.instance.role == 'RESCUER' and not phone_number:
+            self.add_error('phone_number', 'Phone number is required for rescuer accounts.')
+
+        if self.instance.role == 'SHELTER' and not service_area:
+            self.add_error('service_area', 'Service area is required for shelter accounts.')
+
+        return cleaned_data

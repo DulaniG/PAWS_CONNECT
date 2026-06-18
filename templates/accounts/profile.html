@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile | PAWS CONNECT{% endblock %}
+
+{% block content %}
+
+<div class="paws-section-card mb-4">
+    <h2 class="paws-heading">My Profile</h2>
+    <p class="paws-subtitle mb-0">
+        View and update your PAWS CONNECT account details.
+    </p>
+</div>
+
+<div class="row g-4">
+
+    <div class="col-lg-4">
+        <div class="paws-card h-100">
+            <h5 class="paws-heading">Account Summary</h5>
+
+            <p class="mb-1">
+                <strong>Username:</strong> {{ user.username }}
+            </p>
+
+            <p class="mb-1">
+                <strong>Role:</strong> {{ user.get_role_display }}
+            </p>
+
+            <p class="mb-1">
+                <strong>Status:</strong> {{ user.get_account_status_display }}
+            </p>
+
+            <p class="mb-0">
+                <strong>Joined:</strong> {{ user.date_joined|date:"d M Y" }}
+            </p>
+
+            <hr>
+
+            <p class="paws-subtitle small mb-0">
+                Your role and approval status cannot be changed here.
+                These are managed by the system administrator.
+            </p>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="paws-card">
+
+            <h5 class="paws-heading mb-3">Update Profile Details</h5>
+
+            <form method="POST" novalidate>
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <div class="mb-3">
+                    <label class="form-label">Full Name</label>
+                    {{ form.full_name }}
+                    {% for error in form.full_name.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Email Address</label>
+                    {{ form.email }}
+                    {% for error in form.email.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Phone Number</label>
+                    {{ form.phone_number }}
+
+                    {% if user.role == 'RESCUER' %}
+                        <div class="form-text">
+                            Required for rescuer accounts so shelters can contact you about assigned cases.
+                        </div>
+                    {% else %}
+                        <div class="form-text">
+                            Optional contact number.
+                        </div>
+                    {% endif %}
+
+                    {% for error in form.phone_number.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Service Area</label>
+                    {{ form.service_area }}
+
+                    {% if user.role == 'SHELTER' %}
+                        <div class="form-text">
+                            Required for shelter accounts. Example: Colombo, Kandy, Jaffna.
+                        </div>
+                    {% else %}
+                        <div class="form-text">
+                            Optional unless you are registered as a shelter.
+                        </div>
+                    {% endif %}
+
+                    {% for error in form.service_area.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="d-flex flex-column flex-md-row gap-3">
+                    <button type="submit" class="btn btn-paws">
+                        Save Changes
+                    </button>
+
+                    <a href="/accounts/dashboard/" class="btn btn-outline-paws">
+                        Back to Dashboard
+                    </a>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
