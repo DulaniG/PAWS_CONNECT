@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard | PAWS CONNECT{% endblock %}
+
+{% block content %}
+
+<div class="paws-section-card mb-4">
+    <h2 class="paws-heading">Dashboard</h2>
+    <p class="paws-subtitle mb-0">
+        Welcome to PAWS CONNECT, {{ user.full_name|default:user.username }}.
+    </p>
+</div>
+
+<!-- Account Details -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="paws-card h-100">
+            <h5 class="paws-heading">Account Details</h5>
+            <p class="mb-1"><strong>Username:</strong> {{ user.username }}</p>
+            <p class="mb-1"><strong>Email:</strong> {{ user.email }}</p>
+            <p class="mb-1"><strong>Role:</strong> {{ user.get_role_display }}</p>
+            <p class="mb-0"><strong>Status:</strong> {{ user.get_account_status_display }}</p>
+        </div>
+    </div>
+</div>
+
+{% if user.role == 'PUBLIC' %}
+
+    <div class="paws-section-card mb-3">
+        <h4 class="paws-heading">Your Services</h4>
+        <p class="paws-subtitle mb-0">
+            These features are available for Public Users.
+        </p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="paws-card paws-action-card h-100">
+                <h5 class="paws-heading">Report Animal</h5>
+                <p class="paws-subtitle">
+                    Submit a street animal report with condition, image, and location details.
+                </p>
+                <a href="#" class="btn btn-paws">Report Animal</a>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="paws-card paws-action-card h-100">
+                <h5 class="paws-heading">Adoption</h5>
+                <p class="paws-subtitle">
+                    Browse rescued animals and submit adoption requests through the system.
+                </p>
+                <a href="#" class="btn btn-paws">View Animals</a>
+            </div>
+        </div>
+    </div>
+
+{% elif user.role == 'RESCUER' %}
+
+    <div class="paws-section-card mb-3">
+        <h4 class="paws-heading">Rescuer Services</h4>
+        <p class="paws-subtitle mb-0">
+            These are your main responsibilities as a Rescuer.
+        </p>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="paws-card paws-action-card h-100">
+                <h5 class="paws-heading">Assigned Cases</h5>
+                <p class="paws-subtitle">
+                    View rescue cases assigned by shelters and update rescue progress.
+                </p>
+                <a href="#" class="btn btn-paws">View Cases</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="paws-section-card mb-3">
+        <h4 class="paws-heading">Common Services</h4>
+        <p class="paws-subtitle mb-0">
+            As a Rescuer, you can also use general system features.
+        </p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="paws-card paws-action-card h-100">
+                <h5 class="paws-heading">Report Animal</h5>
+                <p class="paws-subtitle">
+                    Submit a street animal report with condition, image, and location details.
+                </p>
+                <a href="#" class="btn btn-paws">Report Animal</a>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="paws-card paws-action-card h-100">
+                <h5 class="paws-heading">Adoption</h5>
+                <p class="paws-subtitle">
+                    Browse rescued animals and submit adoption requests through the system.
+                </p>
+                <a href="#" class="btn btn-paws">View Animals</a>
+            </div>
+        </div>
+    </div>
+
+{% elif user.role == 'SHELTER' %}
+
+    <div class="paws-section-card mb-3">
+        <h4 class="paws-heading">Shelter Services</h4>
+        <p class="paws-subtitle mb-0">
+            These are your main responsibilities as a Shelter user.
+        </p>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="paws-card paws-action-card h-100">
+                <h5 class="paws-heading">Review Reports</h5>
+                <p class="paws-subtitle">
+                    Review public animal reports, set priority, and assign rescuers.
+                </p>
+                <a href="#" class="btn btn-paws">Review Reports</a>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="paws-card paws-action-card h-100">
+                <h5 class="paws-heading">Manage Animals</h5>
+                <p class="paws-subtitle">
+                    Track rescued animals, treatment status, and adoption availability.
+                </p>
+                <a href="#" class="btn btn-paws">Manage Animals</a>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="paws-card paws-action-card h-100">
+                <h5 class="paws-heading">Adoption Requests</h5>
+                <p class="paws-subtitle">
+                    Review, approve, or reject adoption requests submitted by users.
+                </p>
+                <a href="#" class="btn btn-paws">View Requests</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="paws-section-card mb-3">
+        <h4 class="paws-heading">Common Services</h4>
+        <p class="paws-subtitle mb-0">
+            As a Shelter, you can also use general system features.
+        </p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="paws-card paws-action-card h-100">
+                <h5 class="paws-heading">Report Animal</h5>
+                <p class="paws-subtitle">
+                    Submit a street animal report with condition, image, and location details.
+                </p>
+                <a href="#" class="btn btn-paws">Report Animal</a>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="paws-card paws-action-card h-100">
+                <h5 class="paws-heading">Adoption</h5>
+                <p class="paws-subtitle">
+                    Browse rescued animals and submit adoption requests through the system.
+                </p>
+                <a href="#" class="btn btn-paws">View Animals</a>
+            </div>
+        </div>
+    </div>
+
+{% elif user.role == 'ADMIN' %}
+
+    <div class="paws-section-card mb-3">
+        <h4 class="paws-heading">Administrator Services</h4>
+        <p class="paws-subtitle mb-0">
+            These features are available for system administrators.
+        </p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="paws-card paws-action-card h-100">
+                <h5 class="paws-heading">Admin Panel</h5>
+                <p class="paws-subtitle">
+                    Manage users, verify rescuer and shelter accounts, and monitor the system.
+                </p>
+                <a href="/admin/" class="btn btn-paws">Open Admin Panel</a>
+            </div>
+        </div>
+    </div>
+
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block title %}Register | PAWS CONNECT{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-lg-7 col-md-9">
+        <div class="paws-card">
+
+            <div class="text-center mb-4">
+                <h2 class="paws-heading">Create Your Account</h2>
+                <p class="paws-subtitle">
+                    Join PAWS CONNECT to report animals, support rescue work, or manage shelter activities.
+                </p>
+            </div>
+
+            <form method="POST" novalidate>
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <div class="mb-3">
+                    <label class="form-label">Username</label>
+                    {{ form.username }}
+                    {% for error in form.username.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Full Name</label>
+                    {{ form.full_name }}
+                    {% for error in form.full_name.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Email Address</label>
+                    {{ form.email }}
+                    {% for error in form.email.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Phone Number</label>
+                    {{ form.phone_number }}
+                    
+                    <div class="form-text">
+                        Required for rescuer accounts so shelters can contact rescuers about assigned cases.
+                    </div>
+                    
+                    {% for error in form.phone_number.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Register As</label>
+                    {{ form.role }}
+
+                    <div class="form-text">
+                        Select your account type. Rescuer and Shelter accounts require administrator approval.
+                    </div>
+
+                    {% for error in form.role.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Service Area</label>
+                    {{ form.service_area }}
+
+                    <div class="form-text">
+                        Required only for shelters. Example: Colombo, Kandy, Jaffna.
+                    </div>
+
+                    {% for error in form.service_area.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Password</label>
+                    {{ form.password1 }}
+                    {% for error in form.password1.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Confirm Password</label>
+                    {{ form.password2 }}
+                    {% for error in form.password2.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <button type="submit" class="btn btn-paws w-100">
+                    Register
+                </button>
+            </form>
+
+            <div class="text-center mt-3">
+                <p class="mb-0">
+                    Already have an account?
+                    <a href="/accounts/login/" class="text-decoration-none">Login here</a>
+                </p>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

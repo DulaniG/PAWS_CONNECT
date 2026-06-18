@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block title %}Home | PAWS CONNECT{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<section class="text-center py-5">
+    <div class="paws-card mx-auto" style="max-width: 900px;">
+        <h1 class="display-5 paws-heading mb-3">🐾 PAWS CONNECT</h1>
+
+        <h4 class="mb-3">
+            Street Animal Rescue and Adoption System in Sri Lanka
+        </h4>
+
+        <p class="lead paws-subtitle mb-4">
+            Report. Rescue. Care. Adopt.
+        </p>
+
+        <p class="mb-4">
+            PAWS CONNECT is a mobile-friendly web platform that helps the public,
+            rescuers, shelters, and administrators coordinate street animal rescue,
+            treatment tracking, and adoption activities in Sri Lanka.
+        </p>
+
+        <div class="d-flex flex-column flex-md-row justify-content-center gap-3">
+            <a href="/accounts/register/" class="btn btn-paws">
+                Get Started
+            </a>
+
+            <a href="/accounts/login/" class="btn btn-outline-paws">
+                Login
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Feature Cards -->
+<section class="py-4">
+    <div class="row g-4">
+
+        <div class="col-md-6 col-lg-3">
+            <div class="paws-card h-100 text-center">
+                <h3 class="mb-3">📍</h3>
+                <h5 class="paws-heading">Animal Reporting</h5>
+                <p class="paws-subtitle">
+                    Public users can report injured, abandoned, or vulnerable
+                    street animals with details, photos, and location information.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="paws-card h-100 text-center">
+                <h3 class="mb-3">🚑</h3>
+                <h5 class="paws-heading">Rescue Coordination</h5>
+                <p class="paws-subtitle">
+                    Shelters can review reports, prioritize rescue cases,
+                    and assign rescuers based on urgency and location.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="paws-card h-100 text-center">
+                <h3 class="mb-3">🏥</h3>
+                <h5 class="paws-heading">Treatment Tracking</h5>
+                <p class="paws-subtitle">
+                    Shelters can update animal treatment progress,
+                    recovery status, and adoption availability.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="paws-card h-100 text-center">
+                <h3 class="mb-3">🏡</h3>
+                <h5 class="paws-heading">Adoption Management</h5>
+                <p class="paws-subtitle">
+                    Users can browse rescued animals and submit adoption requests
+                    through a structured adoption workflow.
+                </p>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- User Roles Section -->
+<section class="py-4">
+    <div class="paws-card">
+        <h3 class="paws-heading text-center mb-4">Who Can Use PAWS CONNECT?</h3>
+
+        <div class="row g-4">
+
+            <div class="col-md-3 text-center">
+                <h5>👤 Public User</h5>
+                <p class="paws-subtitle">
+                    Reports animals and submits adoption requests.
+                </p>
+            </div>
+
+            <div class="col-md-3 text-center">
+                <h5>🚨 Rescuer</h5>
+                <p class="paws-subtitle">
+                    Responds to assigned rescue cases and updates rescue status.
+                </p>
+            </div>
+
+            <div class="col-md-3 text-center">
+                <h5>🏠 Shelter</h5>
+                <p class="paws-subtitle">
+                    Reviews reports, manages animals, and processes adoptions.
+                </p>
+            </div>
+
+            <div class="col-md-3 text-center">
+                <h5>🔐 Administrator</h5>
+                <p class="paws-subtitle">
+                    Manages users and verifies rescuer and shelter accounts.
+                </p>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+{% endblock %}
