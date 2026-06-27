@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Adoption | PAWS CONNECT{% endblock %}
+
+{% block content %}
+
+<div class="paws-section-card mb-4">
+    <h2 class="paws-heading">Adoption</h2>
+    <p class="paws-subtitle mb-0">
+        Browse rescued animals ready for adoption or view your submitted adoption requests.
+    </p>
+</div>
+
+<div class="row g-4">
+
+    <div class="col-md-6">
+        <div class="paws-card paws-action-card h-100 d-flex flex-column">
+            <h5 class="paws-heading">Available Animals</h5>
+
+            <p class="paws-subtitle">
+                View animals that have completed treatment and are ready to be adopted.
+            </p>
+
+            <div class="mt-auto">
+                <a href="/rescue/adoption/available/" class="btn btn-paws">
+                    Browse Available Animals
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="paws-card paws-action-card h-100 d-flex flex-column">
+            <h5 class="paws-heading">My Adoption Requests</h5>
+
+            <p class="paws-subtitle">
+                View adoption requests you have submitted and check whether they are pending, approved, or rejected.
+            </p>
+
+            <div class="mt-auto">
+                <a href="/rescue/my-adoption-requests/" class="btn btn-paws">
+                    View My Adoption Requests
+                </a>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

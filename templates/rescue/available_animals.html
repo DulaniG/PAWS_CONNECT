@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block title %}Available Animals | PAWS CONNECT{% endblock %}
+
+{% block content %}
+
+<div class="paws-section-card mb-4">
+    <h2 class="paws-heading">Available Animals for Adoption</h2>
+    <p class="paws-subtitle mb-0">
+        These animals have completed treatment and are ready for adoption.
+    </p>
+</div>
+
+<div class="paws-card">
+
+    {% if animals %}
+
+        <div class="row g-4">
+            {% for animal in animals %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="paws-card paws-action-card h-100">
+
+                        {% if animal.animal_image %}
+                            <img src="{{ animal.animal_image.url }}" class="report-card-image" alt="Animal image">
+                        {% elif animal.report.image %}
+                            <img src="{{ animal.report.image.url }}" class="report-card-image" alt="Reported animal image">
+                        {% else %}
+                            <div class="report-card-placeholder">
+                                No image provided
+                            </div>
+                        {% endif %}
+
+                        <h5 class="paws-heading mb-2">
+                            {% if animal.name %}
+                                {{ animal.name }}
+                            {% else %}
+                                {{ animal.report.get_animal_type_display }}
+                            {% endif %}
+                        </h5>
+
+                        <p class="mb-1">
+                            <strong>Animal Type:</strong>
+                            {{ animal.report.get_animal_type_display }}
+                            {% if animal.report.other_animal_type %}
+                                - {{ animal.report.other_animal_type }}
+                            {% endif %}
+                        </p>
+
+                        <p class="mb-1">
+                            <strong>Age:</strong>
+                            {% if animal.age %}
+                                {{ animal.age }}
+                            {% else %}
+                                Not specified
+                            {% endif %}
+                        </p>
+
+                        <p class="mb-1">
+                            <strong>Gender:</strong> {{ animal.get_gender_display }}
+                        </p>
+
+                        <p class="mb-1">
+                            <strong>Status:</strong>
+                            <span class="badge bg-success">Ready for Adoption</span>
+                        </p>
+
+                        <p class="mb-1">
+                            <strong>Shelter:</strong>
+                            {% if animal.shelter %}
+                                {{ animal.shelter.full_name|default:animal.shelter.username }}
+                            {% else %}
+                                Not specified
+                            {% endif %}
+                        </p>
+
+                        <p class="mb-3">
+                            <strong>Location Area:</strong>
+                            {% if animal.shelter and animal.shelter.service_area %}
+                                {{ animal.shelter.service_area }}
+                            {% else %}
+                                Not specified
+                            {% endif %}
+                        </p>
+
+                        <a href="/rescue/adoption/{{ animal.id }}/" class="btn btn-paws w-100">
+                            View Details
+                        </a>
+
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+    {% else %}
+
+        <div class="text-center py-4">
+            <h5 class="paws-heading">No animals are available for adoption yet</h5>
+            <p class="paws-subtitle mb-3">
+                Animals will appear here after the shelter marks them as Ready for Adoption.
+            </p>
+
+            <a href="/rescue/adoption/" class="btn btn-paws">
+                Back to Adoption
+            </a>
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% if animals %}
+    <div class="mt-4">
+        <a href="/rescue/adoption/" class="btn btn-outline-paws">
+            Back to Adoption
+        </a>
+    </div>
+{% endif %}
+
+{% endblock %}

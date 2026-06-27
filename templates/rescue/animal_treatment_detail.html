@@ -1,0 +1,316 @@
+{% extends 'base.html' %}
+
+{% block title %}Animal Treatment Detail | PAWS CONNECT{% endblock %}
+
+{% block content %}
+
+<div class="paws-section-card mb-4">
+    <h2 class="paws-heading">Animal Treatment Detail</h2>
+    <p class="paws-subtitle mb-0">
+        Update the animal’s health condition, treatment status, and final outcome.
+    </p>
+</div>
+
+<div class="row g-4">
+
+    <div class="col-lg-6">
+        <div class="paws-card mb-4">
+
+            <h5 class="paws-heading mb-3">Original Rescue Report</h5>
+
+            {% if report.image %}
+                <img src="{{ report.image.url }}" class="report-card-image" alt="Reported animal image">
+            {% else %}
+                <div class="report-card-placeholder">
+                    No original image provided
+                </div>
+            {% endif %}
+
+            <p class="mb-1">
+                <strong>Animal Type:</strong>
+                {{ report.get_animal_type_display }}
+                {% if report.other_animal_type %}
+                    - {{ report.other_animal_type }}
+                {% endif %}
+            </p>
+
+            <p class="mb-1">
+                <strong>Original Condition:</strong> {{ report.get_condition_display }}
+            </p>
+
+            <p class="mb-1">
+                <strong>Original Description:</strong> {{ report.description }}
+            </p>
+
+            <p class="mb-1">
+                <strong>Pickup Location:</strong> {{ report.location_description }}
+            </p>
+
+            {% if report.map_link %}
+                <p class="mb-1">
+                    <strong>Animal Location Map:</strong>
+                    <a href="{{ report.map_link }}" target="_blank">Open Animal Location</a>
+                </p>
+            {% endif %}
+
+            <p class="mb-1">
+                <strong>Rescue Status:</strong>
+                <span class="badge bg-success">
+                    {{ report.get_current_rescue_status_display }}
+                </span>
+            </p>
+
+            <p class="mb-1">
+                <strong>Assigned Rescuer:</strong>
+                {% if report.assigned_rescuer %}
+                    {{ report.assigned_rescuer.full_name|default:report.assigned_rescuer.username }}
+                {% else %}
+                    Not assigned
+                {% endif %}
+            </p>
+
+            <p class="mb-1">
+                <strong>Reporter:</strong>
+                {{ report.reporter.full_name|default:report.reporter.username }}
+            </p>
+
+            <p class="mb-0">
+                <strong>Reporter Contact:</strong>
+                {% if report.reporter_contact_phone %}
+                    {{ report.reporter_contact_phone }}
+                {% else %}
+                    Not provided
+                {% endif %}
+            </p>
+
+        </div>
+
+        <div class="paws-card">
+            <h5 class="paws-heading mb-3">Rescue Update History</h5>
+
+            {% if rescue_updates %}
+                {% for update in rescue_updates %}
+                    <div class="border rounded p-3 mb-3">
+                        <p class="mb-1">
+                            <strong>Status:</strong> {{ update.get_status_display }}
+                        </p>
+
+                        <p class="mb-1">
+                            <strong>Update:</strong> {{ update.update_text }}
+                        </p>
+
+                        {% if update.photo %}
+                            <img src="{{ update.photo.url }}" class="report-card-image" alt="Rescue update photo">
+                        {% endif %}
+
+                        <p class="paws-subtitle small mb-0">
+                            Added by {{ update.rescuer.full_name|default:update.rescuer.username }}
+                            on {{ update.created_at|date:"d M Y, h:i A" }}
+                        </p>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="paws-subtitle mb-0">
+                    No rescue updates have been added yet.
+                </p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+
+        <div class="paws-card">
+
+            <h5 class="paws-heading mb-3">
+                {% if created %}
+                    Start Treatment Record
+                {% else %}
+                    Update Treatment Record
+                {% endif %}
+            </h5>
+
+            <div class="alert alert-info">
+                <strong>Treatment starts after handover:</strong>
+                <br>
+                This record is available because the rescuer has updated the case as Handed Over to Shelter.
+            </div>
+
+            {% if animal.treatment_status == 'PASSED_AWAY' %}
+                <div class="alert alert-secondary">
+                    This animal has been marked as Passed Away. Keep the treatment notes respectful and factual.
+                </div>
+            {% elif animal.treatment_status == 'READY_FOR_ADOPTION' %}
+                <div class="alert alert-success">
+                    This animal is marked as Ready for Adoption and can be shown in the adoption section later.
+                </div>
+            {% endif %}
+
+            <form method="POST" enctype="multipart/form-data" novalidate>
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label class="form-label">Animal Name</label>
+                    {{ form.name }}
+                    {% for error in form.name.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                    <div class="form-text">
+                        Optional. The shelter can give a temporary name.
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Approximate Age</label>
+                    {{ form.age }}
+                    {% for error in form.age.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Gender</label>
+                    {{ form.gender }}
+                    {% for error in form.gender.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Updated Animal Image</label>
+                    {{ form.animal_image }}
+                    {% for error in form.animal_image.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                    <div class="form-text">
+                        Optional. JPG, PNG, or WEBP only. Maximum size: 5MB.
+                    </div>
+                </div>
+
+                {% if animal.animal_image %}
+                    <div class="mb-3">
+                        <p class="mb-1"><strong>Current Treatment Image:</strong></p>
+                        <img src="{{ animal.animal_image.url }}" class="report-card-image" alt="Animal treatment image">
+                    </div>
+                {% endif %}
+
+                <div class="mb-3">
+                    <label class="form-label">Health Status</label>
+                    {{ form.health_status }}
+                    {% for error in form.health_status.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Treatment Status</label>
+                    {{ form.treatment_status }}
+                    {% for error in form.treatment_status.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                    <div class="form-text">
+                        Choose Passed Away only if the animal did not survive after treatment/care.
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Treatment Notes</label>
+                    {{ form.treatment_notes }}
+                    {% for error in form.treatment_notes.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Vet / Clinic Information</label>
+                    {{ form.vet_info }}
+                    {% for error in form.vet_info.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Arrival Date</label>
+                    {{ form.arrival_date }}
+                    {% for error in form.arrival_date.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Outcome Notes</label>
+                    {{ form.outcome_notes }}
+                    {% for error in form.outcome_notes.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                    <div class="form-text">
+                        Required if status is Passed Away. Optional for other treatment outcomes.
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-paws w-100">
+                    Save Treatment Record
+                </button>
+
+            </form>
+
+        </div>
+
+        <div class="paws-card mt-4">
+            <h5 class="paws-heading mb-3">Current Treatment Summary</h5>
+
+            <p class="mb-1">
+                <strong>Treatment Status:</strong>
+                {% if animal.treatment_status == 'UNDER_TREATMENT' %}
+                    <span class="badge bg-info text-dark">Under Treatment</span>
+                {% elif animal.treatment_status == 'RECOVERING' %}
+                    <span class="badge bg-primary">Recovering</span>
+                {% elif animal.treatment_status == 'READY_FOR_ADOPTION' %}
+                    <span class="badge bg-success">Ready for Adoption</span>
+                {% elif animal.treatment_status == 'ADOPTED' %}
+                    <span class="badge bg-dark">Adopted</span>
+                {% elif animal.treatment_status == 'PASSED_AWAY' %}
+                    <span class="badge bg-secondary">Passed Away</span>
+                {% endif %}
+            </p>
+
+            <p class="mb-1">
+                <strong>Arrival Date:</strong>
+                {% if animal.arrival_date %}
+                    {{ animal.arrival_date|date:"d M Y" }}
+                {% else %}
+                    Not set
+                {% endif %}
+            </p>
+
+            <p class="mb-1">
+                <strong>Adoption Ready Date:</strong>
+                {% if animal.adoption_ready_date %}
+                    {{ animal.adoption_ready_date|date:"d M Y" }}
+                {% else %}
+                    Not ready yet
+                {% endif %}
+            </p>
+
+            <p class="mb-1">
+                <strong>Outcome Date:</strong>
+                {% if animal.outcome_date %}
+                    {{ animal.outcome_date|date:"d M Y" }}
+                {% else %}
+                    Not set
+                {% endif %}
+            </p>
+
+            <p class="mb-0">
+                <strong>Last Updated:</strong> {{ animal.updated_at|date:"d M Y, h:i A" }}
+            </p>
+        </div>
+
+        <a href="/rescue/shelter/treatment/" class="btn btn-outline-paws w-100 mt-3">
+            Back to Treatment List
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}

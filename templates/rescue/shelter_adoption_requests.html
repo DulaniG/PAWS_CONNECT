@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block title %}Adoption Requests | PAWS CONNECT{% endblock %}
+
+{% block content %}
+
+<div class="paws-section-card mb-4">
+    <h2 class="paws-heading">Adoption Requests</h2>
+    <p class="paws-subtitle mb-0">
+        Review adoption requests submitted for animals managed by your shelter.
+    </p>
+</div>
+
+<div class="paws-card">
+
+    {% if adoption_requests %}
+
+        <div class="row g-4">
+            {% for adoption_request in adoption_requests %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="paws-card h-100">
+
+                        {% if adoption_request.animal.animal_image %}
+                            <img src="{{ adoption_request.animal.animal_image.url }}" class="report-card-image" alt="Animal image">
+                        {% elif adoption_request.animal.report.image %}
+                            <img src="{{ adoption_request.animal.report.image.url }}" class="report-card-image" alt="Reported animal image">
+                        {% else %}
+                            <div class="report-card-placeholder">
+                                No image provided
+                            </div>
+                        {% endif %}
+
+                        <h5 class="paws-heading mb-2">
+                            {% if adoption_request.animal.name %}
+                                {{ adoption_request.animal.name }}
+                            {% else %}
+                                {{ adoption_request.animal.report.get_animal_type_display }}
+                            {% endif %}
+                        </h5>
+
+                        <p class="mb-1">
+                            <strong>Animal Type:</strong>
+                            {{ adoption_request.animal.report.get_animal_type_display }}
+                            {% if adoption_request.animal.report.other_animal_type %}
+                                - {{ adoption_request.animal.report.other_animal_type }}
+                            {% endif %}
+                        </p>
+
+                        <p class="mb-1">
+                            <strong>Requester:</strong>
+                            {{ adoption_request.requester.full_name|default:adoption_request.requester.username }}
+                        </p>
+
+                        <p class="mb-1">
+                            <strong>Requester Email:</strong>
+                            {{ adoption_request.requester.email }}
+                        </p>
+
+                        <p class="mb-1">
+                            <strong>Status:</strong>
+                            {% if adoption_request.status == 'PENDING' %}
+                                <span class="badge bg-warning text-dark">Pending</span>
+                            {% elif adoption_request.status == 'APPROVED' %}
+                                <span class="badge bg-success">Approved</span>
+                            {% elif adoption_request.status == 'REJECTED' %}
+                                <span class="badge bg-danger">Rejected</span>
+                            {% endif %}
+                        </p>
+
+                        <p class="mb-1">
+                            <strong>Submitted:</strong>
+                            {{ adoption_request.created_at|date:"d M Y, h:i A" }}
+                        </p>
+
+                        <p class="mb-3">
+                            <strong>Message:</strong>
+                            {{ adoption_request.message|truncatechars:100 }}
+                        </p>
+
+                        <a href="/rescue/shelter/adoption-requests/{{ adoption_request.id }}/" class="btn btn-paws w-100">
+                            Review Request
+                        </a>
+
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+    {% else %}
+
+        <div class="text-center py-4">
+            <h5 class="paws-heading">No adoption requests yet</h5>
+            <p class="paws-subtitle mb-0">
+                Adoption requests will appear here when users submit requests for animals managed by your shelter.
+            </p>
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

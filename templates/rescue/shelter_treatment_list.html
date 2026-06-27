@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+
+{% block title %}Treatment Tracking | PAWS CONNECT{% endblock %}
+
+{% block content %}
+
+<div class="paws-section-card mb-4">
+    <h2 class="paws-heading">Treatment Tracking</h2>
+    <p class="paws-subtitle mb-0">
+        Animals appear here only after the rescue status becomes Handed Over to Shelter.
+    </p>
+</div>
+
+<div class="paws-card">
+
+    {% if reports %}
+
+        <div class="row g-4">
+            {% for report in reports %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="paws-card h-100">
+
+                        {% if report.image %}
+                            <img src="{{ report.image.url }}" class="report-card-image" alt="Reported animal image">
+                        {% else %}
+                            <div class="report-card-placeholder">
+                                No image provided
+                            </div>
+                        {% endif %}
+
+                        <h5 class="paws-heading mb-2">
+                            {{ report.get_animal_type_display }}
+                            {% if report.other_animal_type %}
+                                - {{ report.other_animal_type }}
+                            {% endif %}
+                        </h5>
+
+                        <p class="mb-1">
+                            <strong>Condition:</strong> {{ report.get_condition_display }}
+                        </p>
+
+                        <p class="mb-1">
+                            <strong>Final Priority:</strong>
+
+                            {% if report.priority == 'HIGH' %}
+                                <span class="badge bg-danger">High</span>
+                            {% elif report.priority == 'MEDIUM' %}
+                                <span class="badge bg-warning text-dark">Medium</span>
+                            {% elif report.priority == 'LOW' %}
+                                <span class="badge bg-success">Low</span>
+                            {% else %}
+                                <span class="text-muted">Not set</span>
+                            {% endif %}
+                        </p>
+
+                        <p class="mb-1">
+                            <strong>Rescue Status:</strong>
+                            <span class="badge bg-success">
+                                {{ report.get_current_rescue_status_display }}
+                            </span>
+                        </p>
+
+                        <p class="mb-1">
+                            <strong>Assigned Rescuer:</strong>
+                            {% if report.assigned_rescuer %}
+                                {{ report.assigned_rescuer.full_name|default:report.assigned_rescuer.username }}
+                            {% else %}
+                                Not assigned
+                            {% endif %}
+                        </p>
+
+                        <p class="mb-1">
+                            <strong>Location:</strong> {{ report.location_description }}
+                        </p>
+
+                        {% if report.animal %}
+                            <p class="mb-1">
+                                <strong>Treatment Status:</strong>
+                                {% if report.animal.treatment_status == 'UNDER_TREATMENT' %}
+                                    <span class="badge bg-info text-dark">Under Treatment</span>
+                                {% elif report.animal.treatment_status == 'RECOVERING' %}
+                                    <span class="badge bg-primary">Recovering</span>
+                                {% elif report.animal.treatment_status == 'READY_FOR_ADOPTION' %}
+                                    <span class="badge bg-success">Ready for Adoption</span>
+                                {% elif report.animal.treatment_status == 'ADOPTED' %}
+                                    <span class="badge bg-dark">Adopted</span>
+                                {% elif report.animal.treatment_status == 'PASSED_AWAY' %}
+                                    <span class="badge bg-secondary">Passed Away</span>
+                                {% endif %}
+                            </p>
+                        {% else %}
+                            <p class="mb-1">
+                                <strong>Treatment Status:</strong>
+                                <span class="badge bg-warning text-dark">Not Started</span>
+                            </p>
+                        {% endif %}
+
+                        <div class="d-grid mt-3">
+                            <a href="/rescue/shelter/treatment/{{ report.id }}/" class="btn btn-paws">
+                                {% if report.animal %}
+                                    View / Update Treatment
+                                {% else %}
+                                    Start Treatment Record
+                                {% endif %}
+                            </a>
+                        </div>
+
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+    {% else %}
+
+        <div class="text-center py-4">
+            <h5 class="paws-heading">No animals ready for treatment tracking yet</h5>
+            <p class="paws-subtitle mb-0">
+                A rescued animal will appear here only after the rescuer updates the status to Handed Over to Shelter.
+            </p>
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

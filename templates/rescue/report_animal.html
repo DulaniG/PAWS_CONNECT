@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+
+{% block title %}Report Animal | PAWS CONNECT{% endblock %}
+
+{% block content %}
+
+<div class="paws-section-card mb-4">
+    <h2 class="paws-heading">Report a Street Animal</h2>
+    <p class="paws-subtitle mb-0">
+        Submit animal condition, photo, contact, and location details so shelters can verify and review the case.
+    </p>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="paws-card">
+
+            <form method="POST" enctype="multipart/form-data" novalidate>
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <div class="mb-3">
+                    <label class="form-label">Reporter Contact Phone</label>
+                    {{ form.reporter_contact_phone }}
+                    <div class="form-text">
+                        Required. Shelters use this only to verify whether the animal is still at the location before assigning a rescuer.
+                    </div>
+                    {% for error in form.reporter_contact_phone.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <hr>
+
+                <div class="mb-3">
+                    <label class="form-label">Animal Type</label>
+                    {{ form.animal_type }}
+                    {% for error in form.animal_type.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Other Animal Type</label>
+                    {{ form.other_animal_type }}
+                    <div class="form-text">
+                        Fill this only if you selected Other.
+                    </div>
+                    {% for error in form.other_animal_type.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Animal Condition</label>
+                    {{ form.condition }}
+                    <div class="form-text">
+                        The system will suggest priority based on this condition, but shelter staff will make the final decision.
+                    </div>
+                    {% for error in form.condition.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Description</label>
+                    {{ form.description }}
+                    {% for error in form.description.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Animal Image</label>
+                    {{ form.image }}
+                    <div class="form-text">
+                        Optional. JPG, PNG, or WEBP only. Maximum size: 5MB.
+                    </div>
+                    {% for error in form.image.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <hr>
+
+                <h5 class="paws-heading mb-3">Location Details</h5>
+
+                <div class="mb-3">
+                    <button type="button" class="btn btn-outline-paws" onclick="getCurrentLocation()">
+                        Use My Current Location
+                    </button>
+                    <div class="form-text">
+                        This fills latitude and longitude using the browser's location permission.
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Latitude</label>
+                        {{ form.latitude }}
+                        {% for error in form.latitude.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Longitude</label>
+                        {{ form.longitude }}
+                        {% for error in form.longitude.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Location Description</label>
+                    {{ form.location_description }}
+                    {% for error in form.location_description.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Map Link</label>
+                    {{ form.map_link }}
+                    <div class="form-text">
+                        Optional. You can paste a Google Maps or Apple Maps link.
+                    </div>
+                    {% for error in form.map_link.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="d-flex flex-column flex-md-row gap-3">
+                    <button type="submit" class="btn btn-paws">
+                        Submit Report
+                    </button>
+
+                    <a href="/accounts/dashboard/" class="btn btn-outline-paws">
+                        Back to Dashboard
+                    </a>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    function getCurrentLocation() {
+        if (!navigator.geolocation) {
+            alert("Geolocation is not supported by your browser.");
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                document.getElementById("id_latitude").value = position.coords.latitude.toFixed(6);
+                document.getElementById("id_longitude").value = position.coords.longitude.toFixed(6);
+            },
+            function(error) {
+                alert("Unable to get your location. Please enter the location manually.");
+            }
+        );
+    }
+</script>
+
+{% endblock %}

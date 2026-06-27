@@ -63,6 +63,7 @@ class CustomUserAdmin(UserAdmin):
         'role',
         'account_status',
         'service_area',
+        'linked_shelter',
         'is_staff',
         'is_active',
     )
@@ -79,6 +80,8 @@ class CustomUserAdmin(UserAdmin):
         'email',
         'full_name',
         'phone_number',
+        'service_area',
+        'shelter_address',
     )
 
     ordering = ('username',)
@@ -102,6 +105,9 @@ class CustomUserAdmin(UserAdmin):
                 'role',
                 'account_status',
                 'service_area',
+                'shelter_address',
+                'shelter_map_link',
+                'linked_shelter',
             )
         }),
     )
@@ -115,6 +121,9 @@ class CustomUserAdmin(UserAdmin):
                 'role',
                 'account_status',
                 'service_area',
+                'shelter_address',
+                'shelter_map_link',
+                'linked_shelter',
             )
         }),
     )

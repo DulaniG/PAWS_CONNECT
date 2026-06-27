@@ -1,0 +1,252 @@
+{% extends 'base.html' %}
+
+{% block title %}My Report Detail | PAWS CONNECT{% endblock %}
+
+{% block content %}
+
+<div class="paws-section-card mb-4">
+    <h2 class="paws-heading">My Report Detail</h2>
+    <p class="paws-subtitle mb-0">
+        View your submitted report, rescue progress, and treatment updates.
+    </p>
+</div>
+
+<div class="row g-4">
+
+    <div class="col-lg-7">
+        <div class="paws-card">
+
+            <h5 class="paws-heading mb-3">Submitted Animal Report</h5>
+
+            {% if report.image %}
+                <img src="{{ report.image.url }}" class="report-card-image" alt="Reported animal image">
+            {% else %}
+                <div class="report-card-placeholder">
+                    No image provided
+                </div>
+            {% endif %}
+
+            <p class="mb-1">
+                <strong>Animal Type:</strong>
+                {{ report.get_animal_type_display }}
+                {% if report.other_animal_type %}
+                    - {{ report.other_animal_type }}
+                {% endif %}
+            </p>
+
+            <p class="mb-1">
+                <strong>Condition:</strong> {{ report.get_condition_display }}
+            </p>
+
+            <p class="mb-1">
+                <strong>Description:</strong> {{ report.description }}
+            </p>
+
+            <p class="mb-1">
+                <strong>Location:</strong> {{ report.location_description }}
+            </p>
+
+            {% if report.latitude and report.longitude %}
+                <p class="mb-1">
+                    <strong>Coordinates:</strong> {{ report.latitude }}, {{ report.longitude }}
+                </p>
+            {% endif %}
+
+            {% if report.map_link %}
+                <p class="mb-1">
+                    <strong>Map Link:</strong>
+                    <a href="{{ report.map_link }}" target="_blank">Open Animal Location</a>
+                </p>
+            {% endif %}
+
+            <hr>
+
+            <h6 class="paws-heading">Report Progress</h6>
+
+            <p class="mb-1">
+                <strong>Report Status:</strong> {{ report.get_report_status_display }}
+            </p>
+
+            <p class="mb-1">
+                <strong>Verification Status:</strong> {{ report.get_verification_status_display }}
+            </p>
+
+            <p class="mb-1">
+                <strong>Rescue Status:</strong>
+                {% if report.current_rescue_status == 'NOT_STARTED' %}
+                    <span class="badge bg-secondary">Not Started</span>
+                {% elif report.current_rescue_status == 'ON_THE_WAY' %}
+                    <span class="badge bg-info text-dark">On the Way</span>
+                {% elif report.current_rescue_status == 'RESCUED' %}
+                    <span class="badge bg-primary">Rescued</span>
+                {% elif report.current_rescue_status == 'UNABLE_TO_LOCATE' %}
+                    <span class="badge bg-warning text-dark">Unable to Locate</span>
+                {% elif report.current_rescue_status == 'HANDED_OVER_TO_SHELTER' %}
+                    <span class="badge bg-success">Handed Over to Shelter</span>
+                {% endif %}
+            </p>
+
+            <p class="mb-1">
+                <strong>Final Priority:</strong>
+                {% if report.priority == 'HIGH' %}
+                    <span class="badge bg-danger">High</span>
+                {% elif report.priority == 'MEDIUM' %}
+                    <span class="badge bg-warning text-dark">Medium</span>
+                {% elif report.priority == 'LOW' %}
+                    <span class="badge bg-success">Low</span>
+                {% else %}
+                    <span class="text-muted">Not set yet</span>
+                {% endif %}
+            </p>
+
+            <p class="mb-1">
+                <strong>Assigned Shelter:</strong>
+                {% if report.assigned_shelter %}
+                    {{ report.assigned_shelter.full_name|default:report.assigned_shelter.username }}
+                {% else %}
+                    Not assigned yet
+                {% endif %}
+            </p>
+
+            <p class="mb-0">
+                <strong>Reported At:</strong> {{ report.reported_at|date:"d M Y, h:i A" }}
+            </p>
+
+        </div>
+
+        <div class="paws-card mt-4">
+            <h5 class="paws-heading mb-3">Treatment Progress</h5>
+
+            {% if animal %}
+                {% if animal.animal_image %}
+                    <img src="{{ animal.animal_image.url }}" class="report-card-image" alt="Animal treatment image">
+                {% endif %}
+
+                <p class="mb-1">
+                    <strong>Animal Name:</strong>
+                    {% if animal.name %}
+                        {{ animal.name }}
+                    {% else %}
+                        Not named yet
+                    {% endif %}
+                </p>
+
+                <p class="mb-1">
+                    <strong>Animal Status:</strong>
+                    {% if animal.treatment_status == 'UNDER_TREATMENT' %}
+                        <span class="badge bg-info text-dark">Under Treatment</span>
+                    {% elif animal.treatment_status == 'RECOVERING' %}
+                        <span class="badge bg-primary">Recovering</span>
+                    {% elif animal.treatment_status == 'READY_FOR_ADOPTION' %}
+                        <span class="badge bg-success">Ready for Adoption</span>
+                    {% elif animal.treatment_status == 'ADOPTED' %}
+                        <span class="badge bg-primary">Adopted</span>
+                    {% elif animal.treatment_status == 'PASSED_AWAY' %}
+                        <span class="badge bg-secondary">Passed Away</span>
+                    {% endif %}
+                </p>
+
+                <p class="mb-1">
+                    <strong>Health Status:</strong>
+                    {% if animal.health_status %}
+                        {{ animal.health_status }}
+                    {% else %}
+                        Not updated yet
+                    {% endif %}
+                </p>
+
+                <p class="mb-1">
+                    <strong>Treatment Notes:</strong>
+                    {% if animal.treatment_notes %}
+                        {{ animal.treatment_notes }}
+                    {% else %}
+                        Not updated yet
+                    {% endif %}
+                </p>
+
+                <p class="mb-1">
+                    <strong>Vet / Clinic Information:</strong>
+                    {% if animal.vet_info %}
+                        {{ animal.vet_info }}
+                    {% else %}
+                        Not provided
+                    {% endif %}
+                </p>
+
+                <p class="mb-1">
+                    <strong>Arrival Date:</strong>
+                    {% if animal.arrival_date %}
+                        {{ animal.arrival_date|date:"d M Y" }}
+                    {% else %}
+                        Not set
+                    {% endif %}
+                </p>
+
+                {% if animal.adoption_ready_date %}
+                    <p class="mb-1">
+                        <strong>Adoption Ready Date:</strong>
+                        {{ animal.adoption_ready_date|date:"d M Y" }}
+                    </p>
+                {% endif %}
+
+                {% if animal.outcome_date %}
+                    <p class="mb-1">
+                        <strong>Outcome Date:</strong>
+                        {{ animal.outcome_date|date:"d M Y" }}
+                    </p>
+                {% endif %}
+
+                {% if animal.outcome_notes %}
+                    <p class="mb-0">
+                        <strong>Outcome Notes:</strong>
+                        {{ animal.outcome_notes }}
+                    </p>
+                {% endif %}
+
+            {% else %}
+                <p class="paws-subtitle mb-0">
+                    Treatment tracking has not started yet. It will appear here after the animal is handed over to the shelter and the shelter starts a treatment record.
+                </p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="paws-card">
+            <h5 class="paws-heading mb-3">Rescue Update History</h5>
+
+            {% if rescue_updates %}
+                {% for update in rescue_updates %}
+                    <div class="border rounded p-3 mb-3">
+                        <p class="mb-1">
+                            <strong>Status:</strong> {{ update.get_status_display }}
+                        </p>
+
+                        <p class="mb-1">
+                            <strong>Update:</strong> {{ update.update_text }}
+                        </p>
+
+                        {% if update.photo %}
+                            <img src="{{ update.photo.url }}" class="report-card-image" alt="Rescue update photo">
+                        {% endif %}
+
+                        <p class="paws-subtitle small mb-0">
+                            {{ update.created_at|date:"d M Y, h:i A" }}
+                        </p>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="paws-subtitle mb-0">
+                    No rescue updates have been added yet.
+                </p>
+            {% endif %}
+        </div>
+
+        <a href="/rescue/my-reports/" class="btn btn-outline-paws w-100 mt-3">
+            Back to My Reports
+        </a>
+    </div>
+
+</div>
+
+{% endblock %}

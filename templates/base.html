@@ -40,18 +40,18 @@
 
                         {% if user.role == 'PUBLIC' %}
                             <li class="nav-item">
-                                <a class="nav-link" href="#">Report Animal</a>
+                                <a class="nav-link" href="/rescue/report/">Report Animal</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="#">Adoption</a>
+                                <a class="nav-link" href="/rescue/adoption/">Adoption</a>
                             </li>
                         {% elif user.role == 'RESCUER' %}
                             <li class="nav-item">
-                                <a class="nav-link" href="#">Assigned Cases</a>
+                                <a class="nav-link" href="/rescue/rescuer/cases/">Assigned Cases</a>
                             </li>
                         {% elif user.role == 'SHELTER' %}
                             <li class="nav-item">
-                                <a class="nav-link" href="#">Review Reports</a>
+                                <a class="nav-link" href="/rescue/shelter/reports/">Review Reports</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="#">Manage Animals</a>

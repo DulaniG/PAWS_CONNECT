@@ -1,0 +1,292 @@
+{% extends 'base.html' %}
+
+{% block title %}Report Review | PAWS CONNECT{% endblock %}
+
+{% block content %}
+
+<div class="paws-section-card mb-4">
+    <h2 class="paws-heading">Report Review</h2>
+    <p class="paws-subtitle mb-0">
+        Review the report, verify the animal, assign a linked rescuer, and monitor rescue updates.
+    </p>
+</div>
+
+<div class="row g-4">
+
+    <div class="col-lg-7">
+        <div class="paws-card">
+
+            <h5 class="paws-heading mb-3">Submitted Report Details</h5>
+
+            {% if report.image %}
+                <img src="{{ report.image.url }}" class="report-card-image" alt="Reported animal image">
+            {% else %}
+                <div class="report-card-placeholder">
+                    No image provided
+                </div>
+            {% endif %}
+
+            <p class="mb-1">
+                <strong>Animal Type:</strong> {{ report.get_animal_type_display }}
+                {% if report.other_animal_type %}
+                    - {{ report.other_animal_type }}
+                {% endif %}
+            </p>
+
+            <p class="mb-1">
+                <strong>Condition:</strong> {{ report.get_condition_display }}
+            </p>
+
+            <p class="mb-1">
+                <strong>Description:</strong> {{ report.description }}
+            </p>
+
+            <p class="mb-1">
+                <strong>Location Description:</strong> {{ report.location_description }}
+            </p>
+
+            <p class="mb-1">
+                <strong>Latitude:</strong>
+                {% if report.latitude %}
+                    {{ report.latitude }}
+                {% else %}
+                    Not provided
+                {% endif %}
+            </p>
+
+            <p class="mb-1">
+                <strong>Longitude:</strong>
+                {% if report.longitude %}
+                    {{ report.longitude }}
+                {% else %}
+                    Not provided
+                {% endif %}
+            </p>
+
+            <p class="mb-1">
+                <strong>Map Link:</strong>
+                {% if report.map_link %}
+                    <a href="{{ report.map_link }}" target="_blank">Open Map</a>
+                {% else %}
+                    Not provided
+                {% endif %}
+            </p>
+
+            <hr>
+
+            <h6 class="paws-heading">Reporter Contact Details</h6>
+
+            <p class="mb-1">
+                <strong>Reporter:</strong> {{ report.reporter.full_name|default:report.reporter.username }}
+            </p>
+
+            <p class="mb-1">
+                <strong>Contact Phone:</strong>
+                {% if report.reporter_contact_phone %}
+                    {{ report.reporter_contact_phone }}
+                {% else %}
+                    Not provided for this older report
+                {% endif %}
+            </p>
+
+            <p class="paws-subtitle small mb-2">
+                This contact number is shown only to shelter users for manual verification before assigning a rescuer.
+            </p>
+
+            <hr>
+
+            <p class="mb-1">
+                <strong>Reported At:</strong> {{ report.reported_at|date:"d M Y, h:i A" }}
+            </p>
+
+            <p class="mb-1">
+                <strong>Current Status:</strong> {{ report.get_report_status_display }}
+            </p>
+
+            <p class="mb-1">
+                <strong>Current Rescue Status:</strong> {{ report.get_current_rescue_status_display }}
+            </p>
+
+            <p class="mb-1">
+                <strong>Verification Status:</strong> {{ report.get_verification_status_display }}
+            </p>
+
+            <p class="mb-1">
+                <strong>Assigned Rescuer:</strong>
+                {% if report.assigned_rescuer %}
+                    {{ report.assigned_rescuer.full_name|default:report.assigned_rescuer.username }}
+                {% else %}
+                    Not assigned yet
+                {% endif %}
+            </p>
+
+            <p class="mb-0">
+                <strong>Current Final Priority:</strong>
+
+                {% if report.priority == 'HIGH' %}
+                    <span class="badge bg-danger">High</span>
+                {% elif report.priority == 'MEDIUM' %}
+                    <span class="badge bg-warning text-dark">Medium</span>
+                {% elif report.priority == 'LOW' %}
+                    <span class="badge bg-success">Low</span>
+                {% else %}
+                    <span class="text-muted">Not set yet</span>
+                {% endif %}
+            </p>
+
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+
+        <div class="paws-card mb-4">
+            <h5 class="paws-heading mb-3">Shelter Review</h5>
+
+            <div class="alert alert-warning">
+                <strong>System Suggested Priority:</strong>
+                <span class="badge bg-light text-dark border ms-1">
+                    {{ report.get_suggested_priority_display }}
+                </span>
+
+                <br>
+
+                <small>
+                    This is only a suggestion based on the selected condition. The shelter must choose the final priority manually.
+                </small>
+            </div>
+
+            <div class="alert alert-info">
+                <strong>Verification Step:</strong>
+                <br>
+                <small>
+                    Contact the reporter using the phone number shown on this page before assigning a rescuer.
+                </small>
+            </div>
+
+            <form method="POST" novalidate>
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label class="form-label">Final Priority</label>
+                    {{ form.priority }}
+                    {% for error in form.priority.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Verification Status</label>
+                    {{ form.verification_status }}
+                    <div class="form-text">
+                        Select Confirmed Still There before assigning this case to a rescuer.
+                    </div>
+                    {% for error in form.verification_status.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Verification Notes</label>
+                    {{ form.verification_notes }}
+                    <div class="form-text">
+                        Example: Called reporter. Animal is still near the reported location.
+                    </div>
+                    {% for error in form.verification_notes.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <button type="submit" class="btn btn-paws w-100">
+                    Save Review
+                </button>
+            </form>
+        </div>
+
+        <div class="paws-card">
+            <h5 class="paws-heading mb-3">Assign Linked Rescuer</h5>
+
+            {% if report.priority and report.verification_status == 'CONFIRMED_STILL_THERE' %}
+                {% if report.assigned_rescuer %}
+                    <div class="alert alert-success">
+                        This report has already been assigned to
+                        <strong>{{ report.assigned_rescuer.full_name|default:report.assigned_rescuer.username }}</strong>.
+                    </div>
+                {% else %}
+                    <form method="POST" action="/rescue/shelter/reports/{{ report.id }}/assign/" novalidate>
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label class="form-label">Linked Approved Rescuer</label>
+                            {{ assignment_form.assigned_rescuer }}
+                            {% for error in assignment_form.assigned_rescuer.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                            <div class="form-text">
+                                Only approved rescuers linked to this shelter are shown.
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">Rescue and Handover Instructions</label>
+                            {{ assignment_form.assignment_notes }}
+                            {% for error in assignment_form.assignment_notes.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                            <div class="form-text">
+                                Include any special instructions for pickup and handover.
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-paws w-100">
+                            Assign Rescuer
+                        </button>
+                    </form>
+                {% endif %}
+            {% else %}
+                <div class="alert alert-secondary">
+                    Set the final priority and verify the animal as
+                    <strong>Confirmed Still There</strong> before assigning a rescuer.
+                </div>
+            {% endif %}
+
+            <a href="/rescue/shelter/reports/" class="btn btn-outline-paws w-100 mt-3">
+                Back to Reports
+            </a>
+        </div>
+
+    </div>
+
+</div>
+
+<div class="paws-card mt-4">
+    <h5 class="paws-heading mb-3">Rescue Update History</h5>
+
+    {% if rescue_updates %}
+        {% for update in rescue_updates %}
+            <div class="border rounded p-3 mb-3">
+                <p class="mb-1">
+                    <strong>Status:</strong> {{ update.get_status_display }}
+                </p>
+
+                <p class="mb-1">
+                    <strong>Update:</strong> {{ update.update_text }}
+                </p>
+
+                {% if update.photo %}
+                    <img src="{{ update.photo.url }}" class="report-card-image" alt="Rescue update photo">
+                {% endif %}
+
+                <p class="paws-subtitle small mb-0">
+                    Added by {{ update.rescuer.full_name|default:update.rescuer.username }}
+                    on {{ update.created_at|date:"d M Y, h:i A" }}
+                </p>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p class="paws-subtitle mb-0">
+            No rescue updates have been added yet.
+        </p>
+    {% endif %}
+</div>
+
+{% endblock %}

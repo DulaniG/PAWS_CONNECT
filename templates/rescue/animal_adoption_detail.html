@@ -1,0 +1,224 @@
+{% extends 'base.html' %}
+
+{% block title %}Animal Adoption Detail | PAWS CONNECT{% endblock %}
+
+{% block content %}
+
+<div class="paws-section-card mb-4">
+    <h2 class="paws-heading">Animal Adoption Detail</h2>
+    <p class="paws-subtitle mb-0">
+        Review the animal details and submit an adoption request.
+    </p>
+</div>
+
+<div class="row g-4">
+
+    <div class="col-lg-7">
+        <div class="paws-card">
+
+            <h5 class="paws-heading mb-3">Animal Information</h5>
+
+            {% if animal.animal_image %}
+                <img src="{{ animal.animal_image.url }}" class="report-card-image" alt="Animal image">
+            {% elif animal.report.image %}
+                <img src="{{ animal.report.image.url }}" class="report-card-image" alt="Reported animal image">
+            {% else %}
+                <div class="report-card-placeholder">
+                    No image provided
+                </div>
+            {% endif %}
+
+            <p class="mb-1">
+                <strong>Name:</strong>
+                {% if animal.name %}
+                    {{ animal.name }}
+                {% else %}
+                    Not named yet
+                {% endif %}
+            </p>
+
+            <p class="mb-1">
+                <strong>Animal Type:</strong>
+                {{ animal.report.get_animal_type_display }}
+                {% if animal.report.other_animal_type %}
+                    - {{ animal.report.other_animal_type }}
+                {% endif %}
+            </p>
+
+            <p class="mb-1">
+                <strong>Age:</strong>
+                {% if animal.age %}
+                    {{ animal.age }}
+                {% else %}
+                    Not specified
+                {% endif %}
+            </p>
+
+            <p class="mb-1">
+                <strong>Gender:</strong> {{ animal.get_gender_display }}
+            </p>
+
+            <p class="mb-1">
+                <strong>Treatment Status:</strong>
+                <span class="badge bg-success">Ready for Adoption</span>
+            </p>
+
+            <p class="mb-1">
+                <strong>Health Status:</strong>
+                {% if animal.health_status %}
+                    {{ animal.health_status }}
+                {% else %}
+                    Not provided
+                {% endif %}
+            </p>
+
+            <p class="mb-1">
+                <strong>Treatment Notes:</strong>
+                {% if animal.treatment_notes %}
+                    {{ animal.treatment_notes }}
+                {% else %}
+                    Not provided
+                {% endif %}
+            </p>
+
+            <p class="mb-1">
+                <strong>Vet / Clinic Information:</strong>
+                {% if animal.vet_info %}
+                    {{ animal.vet_info }}
+                {% else %}
+                    Not provided
+                {% endif %}
+            </p>
+
+            <p class="mb-1">
+                <strong>Adoption Ready Date:</strong>
+                {% if animal.adoption_ready_date %}
+                    {{ animal.adoption_ready_date|date:"d M Y" }}
+                {% else %}
+                    Not set
+                {% endif %}
+            </p>
+
+            <hr>
+
+            <h6 class="paws-heading">Shelter Information</h6>
+
+            <p class="mb-1">
+                <strong>Shelter:</strong>
+                {% if animal.shelter %}
+                    {{ animal.shelter.full_name|default:animal.shelter.username }}
+                {% else %}
+                    Not specified
+                {% endif %}
+            </p>
+
+            <p class="mb-1">
+                <strong>Service Area:</strong>
+                {% if animal.shelter and animal.shelter.service_area %}
+                    {{ animal.shelter.service_area }}
+                {% else %}
+                    Not specified
+                {% endif %}
+            </p>
+
+            <p class="mb-0">
+                <strong>Shelter Contact:</strong>
+                {% if animal.shelter and animal.shelter.phone_number %}
+                    {{ animal.shelter.phone_number }}
+                {% else %}
+                    Not provided
+                {% endif %}
+            </p>
+
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+
+        <div class="paws-card">
+            <h5 class="paws-heading mb-3">Submit Adoption Request</h5>
+
+            {% if existing_active_request %}
+                <div class="alert alert-info">
+                    You already have an active adoption request for this animal.
+                    Current status:
+                    <strong>{{ existing_active_request.get_status_display }}</strong>
+                </div>
+
+                <a href="/rescue/my-adoption-requests/" class="btn btn-outline-paws w-100">
+                    View My Adoption Requests
+                </a>
+            {% else %}
+                <div class="alert alert-warning">
+                    Please submit a clear and honest adoption request. The shelter will review your message before making a decision.
+                </div>
+
+                <form method="POST" novalidate>
+                    {% csrf_token %}
+
+                    <div class="mb-4">
+                        <label class="form-label">Adoption Request Message</label>
+                        {{ form.message }}
+                        {% for error in form.message.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                        <div class="form-text">
+                            Explain why you want to adopt this animal and how you will care for it.
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-paws w-100">
+                        Submit Adoption Request
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+
+        <div class="paws-card mt-4">
+            <h5 class="paws-heading mb-3">Your Previous Requests for This Animal</h5>
+
+            {% if previous_requests %}
+                {% for request_item in previous_requests %}
+                    <div class="border rounded p-3 mb-3">
+                        <p class="mb-1">
+                            <strong>Status:</strong>
+                            {% if request_item.status == 'PENDING' %}
+                                <span class="badge bg-warning text-dark">Pending</span>
+                            {% elif request_item.status == 'APPROVED' %}
+                                <span class="badge bg-success">Approved</span>
+                            {% elif request_item.status == 'REJECTED' %}
+                                <span class="badge bg-danger">Rejected</span>
+                            {% endif %}
+                        </p>
+
+                        <p class="mb-1">
+                            <strong>Message:</strong> {{ request_item.message }}
+                        </p>
+
+                        {% if request_item.decision_notes %}
+                            <p class="mb-1">
+                                <strong>Decision Notes:</strong> {{ request_item.decision_notes }}
+                            </p>
+                        {% endif %}
+
+                        <p class="paws-subtitle small mb-0">
+                            Submitted on {{ request_item.created_at|date:"d M Y, h:i A" }}
+                        </p>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="paws-subtitle mb-0">
+                    You have not submitted a request for this animal yet.
+                </p>
+            {% endif %}
+        </div>
+
+        <a href="/rescue/adoption/" class="btn btn-outline-paws w-100 mt-3">
+            Back to Available Animals
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}

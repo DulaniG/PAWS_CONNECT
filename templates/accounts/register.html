@@ -1,28 +1,33 @@
 {% extends 'base.html' %}
 
-{% block title %}Register | PAWS CONNECT{% endblock %}
+{% block title %}Create Account | PAWS CONNECT{% endblock %}
 
 {% block content %}
 
 <div class="row justify-content-center">
-    <div class="col-lg-7 col-md-9">
-        <div class="paws-card">
+    <div class="col-lg-8 col-md-10">
 
-            <div class="text-center mb-4">
-                <h2 class="paws-heading">Create Your Account</h2>
-                <p class="paws-subtitle">
-                    Join PAWS CONNECT to report animals, support rescue work, or manage shelter activities.
-                </p>
-            </div>
+        <div class="paws-section-card mb-4 text-center">
+            <h2 class="paws-heading">Create Your Account</h2>
+            <p class="paws-subtitle mb-0">
+                Register as a public user, rescuer, or shelter.
+            </p>
+        </div>
+
+        <div class="paws-card">
 
             <form method="POST" novalidate>
                 {% csrf_token %}
 
                 {% if form.non_field_errors %}
                     <div class="alert alert-danger">
-                        {{ form.non_field_errors }}
+                        {% for error in form.non_field_errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
                     </div>
                 {% endif %}
+
+                <h5 class="paws-heading mb-3">Account Details</h5>
 
                 <div class="mb-3">
                     <label class="form-label">Username</label>
@@ -51,41 +56,87 @@
                 <div class="mb-3">
                     <label class="form-label">Phone Number</label>
                     {{ form.phone_number }}
-                    
-                    <div class="form-text">
-                        Required for rescuer accounts so shelters can contact rescuers about assigned cases.
-                    </div>
-                    
                     {% for error in form.phone_number.errors %}
-                    <div class="text-danger small">{{ error }}</div>
+                        <div class="text-danger small">{{ error }}</div>
                     {% endfor %}
+                    <div class="form-text">
+                        Required for shelter and rescuer accounts.
+                    </div>
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Register As</label>
+                <div class="mb-4">
+                    <label class="form-label">Account Role</label>
                     {{ form.role }}
-
-                    <div class="form-text">
-                        Select your account type. Rescuer and Shelter accounts require administrator approval.
-                    </div>
-
                     {% for error in form.role.errors %}
                         <div class="text-danger small">{{ error }}</div>
                     {% endfor %}
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Service Area</label>
-                    {{ form.service_area }}
+                <div id="shelter-fields" class="border rounded p-3 mb-4">
+                    <h5 class="paws-heading mb-3">Shelter Details</h5>
 
-                    <div class="form-text">
-                        Required only for shelters. Example: Colombo, Kandy, Jaffna.
+                    <div class="alert alert-info">
+                        <strong>Why this is needed:</strong>
+                        <br>
+                        The shelter address and map link are used as the handover destination when a rescuer delivers an animal to the shelter.
                     </div>
 
-                    {% for error in form.service_area.errors %}
-                        <div class="text-danger small">{{ error }}</div>
-                    {% endfor %}
+                    <div class="mb-3">
+                        <label class="form-label">Service Area</label>
+                        {{ form.service_area }}
+                        {% for error in form.service_area.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                        <div class="form-text">
+                            Example: Kottawa, Maharagama, Nugegoda.
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Shelter Address / Handover Location</label>
+                        {{ form.shelter_address }}
+                        {% for error in form.shelter_address.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                        <div class="form-text">
+                            Example: No. 10, Demo Road, Maharagama.
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Shelter Map Link</label>
+                        {{ form.shelter_map_link }}
+                        {% for error in form.shelter_map_link.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                        <div class="form-text">
+                            Optional Google Maps or Apple Maps link.
+                        </div>
+                    </div>
                 </div>
+
+                <div id="rescuer-fields" class="border rounded p-3 mb-4">
+                    <h5 class="paws-heading mb-3">Rescuer Details</h5>
+
+                    <div class="alert alert-info">
+                        <strong>Linked Shelter:</strong>
+                        <br>
+                        Select the shelter you are connected with. Your account will still remain pending until the administrator verifies and approves it.
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Linked Shelter</label>
+                        {{ form.linked_shelter }}
+                        {% for error in form.linked_shelter.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                        <div class="form-text">
+                            Only approved shelters appear here. If your shelter is not listed, the shelter account must be approved by the administrator first.
+                        </div>
+                    </div>
+                </div>
+
+                <h5 class="paws-heading mb-3">Password Details</h5>
 
                 <div class="mb-3">
                     <label class="form-label">Password</label>
@@ -104,19 +155,56 @@
                 </div>
 
                 <button type="submit" class="btn btn-paws w-100">
-                    Register
+                    Create Account
                 </button>
+
+                <div class="text-center mt-3">
+                    <p class="mb-0">
+                        Already have an account?
+                        <a href="/accounts/login/">Login here</a>
+                    </p>
+                </div>
+
             </form>
 
-            <div class="text-center mt-3">
-                <p class="mb-0">
-                    Already have an account?
-                    <a href="/accounts/login/" class="text-decoration-none">Login here</a>
-                </p>
-            </div>
-
         </div>
+
     </div>
 </div>
+
+<script>
+    function updateRoleFields() {
+        const roleField = document.getElementById("id_role");
+        const shelterFields = document.getElementById("shelter-fields");
+        const rescuerFields = document.getElementById("rescuer-fields");
+
+        if (!roleField || !shelterFields || !rescuerFields) {
+            return;
+        }
+
+        const selectedRole = roleField.value;
+
+        if (selectedRole === "SHELTER") {
+            shelterFields.style.display = "block";
+            rescuerFields.style.display = "none";
+        } else if (selectedRole === "RESCUER") {
+            shelterFields.style.display = "none";
+            rescuerFields.style.display = "block";
+        } else {
+            shelterFields.style.display = "none";
+            rescuerFields.style.display = "none";
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        updateRoleFields();
+
+        const roleField = document.getElementById("id_role");
+
+        if (roleField) {
+            roleField.addEventListener("change", updateRoleFields);
+        }
+    });
+</script>
 
 {% endblock %}

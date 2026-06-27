@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block title %}My Reports | PAWS CONNECT{% endblock %}
+
+{% block content %}
+
+<div class="paws-section-card mb-4">
+    <h2 class="paws-heading">My Animal Reports</h2>
+    <p class="paws-subtitle mb-0">
+        View the animal reports you have submitted to PAWS CONNECT.
+    </p>
+</div>
+
+<div class="mb-4">
+    <a href="/rescue/report/" class="btn btn-paws">
+        Submit New Report
+    </a>
+</div>
+
+{% if reports %}
+    <div class="row g-4">
+        {% for report in reports %}
+            <div class="col-lg-6">
+                <div class="paws-card h-100">
+
+                    {% if report.image %}
+                        <img src="{{ report.image.url }}" class="report-card-image" alt="Reported animal image">
+                    {% else %}
+                        <div class="report-card-placeholder">
+                            No image provided
+                        </div>
+                    {% endif %}
+
+                    <h5 class="paws-heading">
+                        {{ report.get_animal_type_display }} Report
+                    </h5>
+
+                    <p class="mb-1">
+                        <strong>Condition:</strong> {{ report.get_condition_display }}
+                    </p>
+
+                    {% if report.priority %}
+                        <p class="mb-1">
+                            <strong>Final Priority:</strong>
+
+                            {% if report.priority == 'HIGH' %}
+                                <span class="badge bg-danger">High</span>
+                            {% elif report.priority == 'MEDIUM' %}
+                                <span class="badge bg-warning text-dark">Medium</span>
+                            {% elif report.priority == 'LOW' %}
+                                <span class="badge bg-success">Low</span>
+                            {% endif %}
+                        </p>
+                    {% else %}
+                        <p class="mb-1">
+                            <strong>Suggested Priority:</strong>
+                            <span class="badge bg-light text-dark border">
+                                {{ report.get_suggested_priority_display }}
+                            </span>
+                        </p>
+
+                        <p class="mb-1">
+                            <strong>Final Priority:</strong>
+                            <span class="text-muted">Not set by shelter yet</span>
+                        </p>
+                    {% endif %}
+
+                    <p class="mb-1">
+                        <strong>Verification:</strong> {{ report.get_verification_status_display }}
+                    </p>
+
+                    <p class="mb-1">
+                        <strong>Report Status:</strong> {{ report.get_report_status_display }}
+                    </p>
+
+                    <p class="mb-1">
+                        <strong>Rescue Status:</strong> {{ report.get_current_rescue_status_display }}
+                    </p>
+
+                    <p class="mb-1">
+                        <strong>Location:</strong> {{ report.location_description }}
+                    </p>
+
+                    <p class="mb-3">
+                        <strong>Reported At:</strong> {{ report.reported_at|date:"d M Y, h:i A" }}
+                    </p>
+
+                    <a href="/rescue/my-reports/{{ report.id }}/" class="btn btn-paws">
+                        View Details
+                    </a>
+
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="paws-card text-center">
+        <h5 class="paws-heading">No Reports Yet</h5>
+        <p class="paws-subtitle">
+            You have not submitted any animal reports yet.
+        </p>
+        <a href="/rescue/report/" class="btn btn-paws">
+            Report an Animal
+        </a>
+    </div>
+{% endif %}
+
+{% endblock %}

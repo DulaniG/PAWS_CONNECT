@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}Review Reports | PAWS CONNECT{% endblock %}
+
+{% block content %}
+
+<div class="paws-section-card mb-4">
+    <h2 class="paws-heading">Review Animal Reports</h2>
+    <p class="paws-subtitle mb-0">
+        View submitted reports, check suggested priority, set final priority, and verify animal presence.
+    </p>
+</div>
+
+{% if reports %}
+    <div class="row g-4">
+        {% for report in reports %}
+            <div class="col-lg-6">
+                <div class="paws-card paws-action-card h-100">
+
+                    {% if report.image %}
+                        <img src="{{ report.image.url }}" class="report-card-image" alt="Reported animal image">
+                    {% else %}
+                        <div class="report-card-placeholder">
+                            No image provided
+                        </div>
+                    {% endif %}
+
+                    <h5 class="paws-heading">
+                        {{ report.get_animal_type_display }} Report
+                    </h5>
+
+                    <p class="mb-1">
+                        <strong>Reporter:</strong> {{ report.reporter.full_name|default:report.reporter.username }}
+                    </p>
+
+                    <p class="mb-1">
+                        <strong>Condition:</strong> {{ report.get_condition_display }}
+                    </p>
+
+                    <p class="mb-1">
+                        <strong>Suggested Priority:</strong>
+                        <span class="badge bg-light text-dark border">
+                            {{ report.get_suggested_priority_display }}
+                        </span>
+                    </p>
+
+                    <p class="mb-1">
+                        <strong>Final Priority:</strong>
+
+                        {% if report.priority == 'HIGH' %}
+                            <span class="badge bg-danger">High</span>
+                        {% elif report.priority == 'MEDIUM' %}
+                            <span class="badge bg-warning text-dark">Medium</span>
+                        {% elif report.priority == 'LOW' %}
+                            <span class="badge bg-success">Low</span>
+                        {% else %}
+                            <span class="text-muted">Not set yet</span>
+                        {% endif %}
+                    </p>
+
+                    <p class="mb-1">
+                        <strong>Verification:</strong> {{ report.get_verification_status_display }}
+                    </p>
+
+                    <p class="mb-1">
+                        <strong>Status:</strong> {{ report.get_report_status_display }}
+                    </p>
+
+                    <p class="mb-1">
+                        <strong>Rescue Status:</strong> {{ report.get_current_rescue_status_display }}
+                    </p>
+
+                    <p class="mb-1">
+                        <strong>Location:</strong> {{ report.location_description }}
+                    </p>
+
+                    <p class="mb-3">
+                        <strong>Reported At:</strong> {{ report.reported_at|date:"d M Y, h:i A" }}
+                    </p>
+
+                    <a href="/rescue/shelter/reports/{{ report.id }}/" class="btn btn-paws">
+                        Review Report
+                    </a>
+
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="paws-card text-center">
+        <h5 class="paws-heading">No Reports Available</h5>
+        <p class="paws-subtitle">
+            No animal reports have been submitted yet.
+        </p>
+    </div>
+{% endif %}
+
+{% endblock %}

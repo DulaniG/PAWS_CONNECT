@@ -1,0 +1,264 @@
+{% extends 'base.html' %}
+
+{% block title %}Review Adoption Request | PAWS CONNECT{% endblock %}
+
+{% block content %}
+
+<div class="paws-section-card mb-4">
+    <h2 class="paws-heading">Review Adoption Request</h2>
+    <p class="paws-subtitle mb-0">
+        Review the requester details, animal information, and approve or reject the adoption request.
+    </p>
+</div>
+
+<div class="row g-4">
+
+    <div class="col-lg-7">
+
+        <div class="paws-card mb-4">
+            <h5 class="paws-heading mb-3">Animal Information</h5>
+
+            {% if adoption_request.animal.animal_image %}
+                <img src="{{ adoption_request.animal.animal_image.url }}" class="report-card-image" alt="Animal image">
+            {% elif adoption_request.animal.report.image %}
+                <img src="{{ adoption_request.animal.report.image.url }}" class="report-card-image" alt="Reported animal image">
+            {% else %}
+                <div class="report-card-placeholder">
+                    No image provided
+                </div>
+            {% endif %}
+
+            <p class="mb-1">
+                <strong>Name:</strong>
+                {% if adoption_request.animal.name %}
+                    {{ adoption_request.animal.name }}
+                {% else %}
+                    Not named yet
+                {% endif %}
+            </p>
+
+            <p class="mb-1">
+                <strong>Animal Type:</strong>
+                {{ adoption_request.animal.report.get_animal_type_display }}
+                {% if adoption_request.animal.report.other_animal_type %}
+                    - {{ adoption_request.animal.report.other_animal_type }}
+                {% endif %}
+            </p>
+
+            <p class="mb-1">
+                <strong>Age:</strong>
+                {% if adoption_request.animal.age %}
+                    {{ adoption_request.animal.age }}
+                {% else %}
+                    Not specified
+                {% endif %}
+            </p>
+
+            <p class="mb-1">
+                <strong>Gender:</strong>
+                {{ adoption_request.animal.get_gender_display }}
+            </p>
+
+            <p class="mb-1">
+                <strong>Treatment Status:</strong>
+                {% if adoption_request.animal.treatment_status == 'READY_FOR_ADOPTION' %}
+                    <span class="badge bg-success">Ready for Adoption</span>
+                {% elif adoption_request.animal.treatment_status == 'ADOPTED' %}
+                    <span class="badge bg-dark">Adopted</span>
+                {% elif adoption_request.animal.treatment_status == 'PASSED_AWAY' %}
+                    <span class="badge bg-secondary">Passed Away</span>
+                {% else %}
+                    {{ adoption_request.animal.get_treatment_status_display }}
+                {% endif %}
+            </p>
+
+            <p class="mb-1">
+                <strong>Health Status:</strong>
+                {% if adoption_request.animal.health_status %}
+                    {{ adoption_request.animal.health_status }}
+                {% else %}
+                    Not provided
+                {% endif %}
+            </p>
+
+            <p class="mb-1">
+                <strong>Treatment Notes:</strong>
+                {% if adoption_request.animal.treatment_notes %}
+                    {{ adoption_request.animal.treatment_notes }}
+                {% else %}
+                    Not provided
+                {% endif %}
+            </p>
+
+            <p class="mb-0">
+                <strong>Adoption Ready Date:</strong>
+                {% if adoption_request.animal.adoption_ready_date %}
+                    {{ adoption_request.animal.adoption_ready_date|date:"d M Y" }}
+                {% else %}
+                    Not set
+                {% endif %}
+            </p>
+        </div>
+
+        <div class="paws-card">
+            <h5 class="paws-heading mb-3">Requester Details</h5>
+
+            <p class="mb-1">
+                <strong>Name:</strong>
+                {{ adoption_request.requester.full_name|default:adoption_request.requester.username }}
+            </p>
+
+            <p class="mb-1">
+                <strong>Username:</strong>
+                {{ adoption_request.requester.username }}
+            </p>
+
+            <p class="mb-1">
+                <strong>Email:</strong>
+                {{ adoption_request.requester.email }}
+            </p>
+
+            <p class="mb-1">
+                <strong>Phone:</strong>
+                {% if adoption_request.requester.phone_number %}
+                    {{ adoption_request.requester.phone_number }}
+                {% else %}
+                    Not provided
+                {% endif %}
+            </p>
+
+            <hr>
+
+            <p class="mb-1">
+                <strong>Request Status:</strong>
+                {% if adoption_request.status == 'PENDING' %}
+                    <span class="badge bg-warning text-dark">Pending</span>
+                {% elif adoption_request.status == 'APPROVED' %}
+                    <span class="badge bg-success">Approved</span>
+                {% elif adoption_request.status == 'REJECTED' %}
+                    <span class="badge bg-danger">Rejected</span>
+                {% endif %}
+            </p>
+
+            <p class="mb-1">
+                <strong>Submitted At:</strong>
+                {{ adoption_request.created_at|date:"d M Y, h:i A" }}
+            </p>
+
+            {% if adoption_request.processed_at %}
+                <p class="mb-1">
+                    <strong>Processed At:</strong>
+                    {{ adoption_request.processed_at|date:"d M Y, h:i A" }}
+                </p>
+            {% endif %}
+
+            {% if adoption_request.processed_by %}
+                <p class="mb-1">
+                    <strong>Processed By:</strong>
+                    {{ adoption_request.processed_by.full_name|default:adoption_request.processed_by.username }}
+                </p>
+            {% endif %}
+
+            <hr>
+
+            <p class="mb-1">
+                <strong>Adoption Request Message:</strong>
+            </p>
+
+            <p class="mb-0">
+                {{ adoption_request.message }}
+            </p>
+
+            {% if adoption_request.decision_notes %}
+                <hr>
+
+                <p class="mb-1">
+                    <strong>Decision Notes:</strong>
+                </p>
+
+                <p class="mb-0">
+                    {{ adoption_request.decision_notes }}
+                </p>
+            {% endif %}
+        </div>
+
+    </div>
+
+    <div class="col-lg-5">
+
+        <div class="paws-card">
+            <h5 class="paws-heading mb-3">Adoption Decision</h5>
+
+            {% if adoption_request.status == 'PENDING' %}
+
+                {% if adoption_request.animal.treatment_status == 'READY_FOR_ADOPTION' %}
+
+                    <div class="alert alert-info">
+                        Approving this request will change the animal status to <strong>Adopted</strong>.
+                    </div>
+
+                    <form method="POST" novalidate>
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label class="form-label">Decision</label>
+                            {{ form.status }}
+                            {% for error in form.status.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">Decision Notes</label>
+                            {{ form.decision_notes }}
+                            {% for error in form.decision_notes.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                            <div class="form-text">
+                                Optional. Add a note explaining the approval or rejection.
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-paws w-100">
+                            Save Decision
+                        </button>
+                    </form>
+
+                {% else %}
+
+                    <div class="alert alert-warning">
+                        This animal is no longer ready for adoption, so this request cannot be approved.
+                    </div>
+
+                {% endif %}
+
+            {% else %}
+
+                <div class="alert alert-secondary">
+                    This adoption request has already been processed.
+                </div>
+
+                <p class="mb-1">
+                    <strong>Final Decision:</strong>
+                    {{ adoption_request.get_status_display }}
+                </p>
+
+                {% if adoption_request.decision_notes %}
+                    <p class="mb-0">
+                        <strong>Decision Notes:</strong>
+                        {{ adoption_request.decision_notes }}
+                    </p>
+                {% endif %}
+
+            {% endif %}
+        </div>
+
+        <a href="/rescue/shelter/adoption-requests/" class="btn btn-outline-paws w-100 mt-3">
+            Back to Adoption Requests
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}

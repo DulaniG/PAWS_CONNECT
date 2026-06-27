@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block title %}Assigned Rescue Cases | PAWS CONNECT{% endblock %}
+
+{% block content %}
+
+<div class="paws-section-card mb-4">
+    <h2 class="paws-heading">Assigned Rescue Cases</h2>
+    <p class="paws-subtitle mb-0">
+        View active rescue cases assigned to you by shelters.
+    </p>
+</div>
+
+<div class="paws-card">
+
+    {% if reports %}
+
+        <div class="row g-4">
+            {% for report in reports %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="paws-card paws-action-card h-100">
+
+                        {% if report.image %}
+                            <img src="{{ report.image.url }}" class="report-card-image" alt="Reported animal image">
+                        {% else %}
+                            <div class="report-card-placeholder">
+                                No image provided
+                            </div>
+                        {% endif %}
+
+                        <h5 class="paws-heading mb-2">
+                            {{ report.get_animal_type_display }} Rescue Case
+                        </h5>
+
+                        <p class="mb-1">
+                            <strong>Condition:</strong> {{ report.get_condition_display }}
+                        </p>
+
+                        <p class="mb-1">
+                            <strong>Priority:</strong>
+                            {% if report.priority == 'HIGH' %}
+                                <span class="badge bg-danger">High</span>
+                            {% elif report.priority == 'MEDIUM' %}
+                                <span class="badge bg-warning text-dark">Medium</span>
+                            {% elif report.priority == 'LOW' %}
+                                <span class="badge bg-success">Low</span>
+                            {% else %}
+                                <span class="text-muted">Not set</span>
+                            {% endif %}
+                        </p>
+
+                        <p class="mb-1">
+                            <strong>Rescue Status:</strong>
+                            {% if report.current_rescue_status == 'NOT_STARTED' %}
+                                <span class="badge bg-secondary">Not Started</span>
+                            {% elif report.current_rescue_status == 'ON_THE_WAY' %}
+                                <span class="badge bg-info text-dark">On the Way</span>
+                            {% elif report.current_rescue_status == 'RESCUED' %}
+                                <span class="badge bg-primary">Rescued</span>
+                            {% else %}
+                                <span class="badge bg-secondary">
+                                    {{ report.get_current_rescue_status_display }}
+                                </span>
+                            {% endif %}
+                        </p>
+
+                        <p class="mb-1">
+                            <strong>Location:</strong> {{ report.location_description }}
+                        </p>
+
+                        <p class="mb-1">
+                            <strong>Assigned Shelter:</strong>
+                            {% if report.assigned_shelter %}
+                                {{ report.assigned_shelter.full_name|default:report.assigned_shelter.username }}
+                            {% else %}
+                                Not assigned
+                            {% endif %}
+                        </p>
+
+                        <p class="mb-3">
+                            <strong>Assigned At:</strong>
+                            {% if report.assigned_at %}
+                                {{ report.assigned_at|date:"d M Y, h:i A" }}
+                            {% else %}
+                                Not recorded
+                            {% endif %}
+                        </p>
+
+                        <a href="/rescue/rescuer/cases/{{ report.id }}/" class="btn btn-paws w-100">
+                            View / Update Case
+                        </a>
+
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+    {% else %}
+
+        <div class="text-center py-4">
+            <h5 class="paws-heading">No active rescue cases</h5>
+            <p class="paws-subtitle mb-0">
+                New assigned rescue cases will appear here when a shelter assigns them to you.
+            </p>
+        </div>
+
+    {% endif %}
+
+</div>
+
+<div class="mt-4">
+    <a href="/accounts/dashboard/" class="btn btn-outline-paws">
+        Back to Dashboard
+    </a>
+</div>
+
+{% endblock %}

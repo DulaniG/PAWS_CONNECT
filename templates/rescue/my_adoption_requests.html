@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block title %}My Adoption Requests | PAWS CONNECT{% endblock %}
+
+{% block content %}
+
+<div class="paws-section-card mb-4">
+    <h2 class="paws-heading">My Adoption Requests</h2>
+    <p class="paws-subtitle mb-0">
+        View the adoption requests you have submitted and their current decisions.
+    </p>
+</div>
+
+<div class="paws-card">
+
+    {% if adoption_requests %}
+
+        <div class="row g-4">
+            {% for adoption_request in adoption_requests %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="paws-card h-100">
+
+                        {% if adoption_request.animal.animal_image %}
+                            <img src="{{ adoption_request.animal.animal_image.url }}" class="report-card-image" alt="Animal image">
+                        {% elif adoption_request.animal.report.image %}
+                            <img src="{{ adoption_request.animal.report.image.url }}" class="report-card-image" alt="Reported animal image">
+                        {% else %}
+                            <div class="report-card-placeholder">
+                                No image provided
+                            </div>
+                        {% endif %}
+
+                        <h5 class="paws-heading mb-2">
+                            {% if adoption_request.animal.name %}
+                                {{ adoption_request.animal.name }}
+                            {% else %}
+                                {{ adoption_request.animal.report.get_animal_type_display }}
+                            {% endif %}
+                        </h5>
+
+                        <p class="mb-1">
+                            <strong>Animal Type:</strong>
+                            {{ adoption_request.animal.report.get_animal_type_display }}
+                            {% if adoption_request.animal.report.other_animal_type %}
+                                - {{ adoption_request.animal.report.other_animal_type }}
+                            {% endif %}
+                        </p>
+
+                        <p class="mb-1">
+                            <strong>Shelter:</strong>
+                            {% if adoption_request.animal.shelter %}
+                                {{ adoption_request.animal.shelter.full_name|default:adoption_request.animal.shelter.username }}
+                            {% else %}
+                                Not specified
+                            {% endif %}
+                        </p>
+
+                        <p class="mb-1">
+                            <strong>Request Status:</strong>
+                            {% if adoption_request.status == 'PENDING' %}
+                                <span class="badge bg-warning text-dark">Pending</span>
+                            {% elif adoption_request.status == 'APPROVED' %}
+                                <span class="badge bg-success">Approved</span>
+                            {% elif adoption_request.status == 'REJECTED' %}
+                                <span class="badge bg-danger">Rejected</span>
+                            {% endif %}
+                        </p>
+
+                        <p class="mb-1">
+                            <strong>Animal Current Status:</strong>
+                            {% if adoption_request.animal.treatment_status == 'ADOPTED' %}
+                                <span class="badge bg-primary">Adopted</span>
+                            {% elif adoption_request.animal.treatment_status == 'READY_FOR_ADOPTION' %}
+                                <span class="badge bg-success">Ready for Adoption</span>
+                            {% elif adoption_request.animal.treatment_status == 'PASSED_AWAY' %}
+                                <span class="badge bg-secondary">Passed Away</span>
+                            {% elif adoption_request.animal.treatment_status == 'RECOVERING' %}
+                                <span class="badge bg-primary">Recovering</span>
+                            {% elif adoption_request.animal.treatment_status == 'UNDER_TREATMENT' %}
+                                <span class="badge bg-info text-dark">Under Treatment</span>
+                            {% else %}
+                                <span class="badge bg-secondary">
+                                    {{ adoption_request.animal.get_treatment_status_display }}
+                                </span>
+                            {% endif %}
+                        </p>
+
+                        <p class="mb-1">
+                            <strong>Submitted:</strong>
+                            {{ adoption_request.created_at|date:"d M Y, h:i A" }}
+                        </p>
+
+                        <p class="mb-1">
+                            <strong>Your Message:</strong>
+                            {{ adoption_request.message|truncatechars:120 }}
+                        </p>
+
+                        {% if adoption_request.status == 'APPROVED' %}
+                            <div class="alert alert-success mt-3 mb-3">
+                                Approved. Open details to view shelter contact and collection information.
+                            </div>
+                        {% endif %}
+
+                        <a href="/rescue/my-adoption-requests/{{ adoption_request.id }}/" class="btn btn-paws w-100 mt-3">
+                            View Details
+                        </a>
+
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+    {% else %}
+
+        <div class="text-center py-4">
+            <h5 class="paws-heading">No adoption requests submitted yet</h5>
+            <p class="paws-subtitle mb-3">
+                You can browse animals that are ready for adoption and submit a request.
+            </p>
+
+            <a href="/rescue/adoption/available/" class="btn btn-paws">
+                View Available Animals
+            </a>
+        </div>
+
+    {% endif %}
+
+</div>
+
+<div class="mt-4">
+    <a href="/rescue/adoption/" class="btn btn-outline-paws">
+        Back to Adoption
+    </a>
+</div>
+
+{% endblock %}

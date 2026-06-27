@@ -19,18 +19,49 @@ class User(AbstractUser):
     ]
 
     full_name = models.CharField(max_length=150)
+
     email = models.EmailField(unique=True)
+
     phone_number = models.CharField(max_length=20, blank=True)
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='PUBLIC')
+
+    role = models.CharField(
+        max_length=20,
+        choices=ROLE_CHOICES,
+        default='PUBLIC'
+    )
+
     account_status = models.CharField(
         max_length=20,
         choices=ACCOUNT_STATUS_CHOICES,
         default='APPROVED'
     )
+
     service_area = models.CharField(
         max_length=100,
         blank=True,
-        help_text="Required for shelter accounts. Example: Colombo, Kandy, Jaffna"
+        help_text='Required for shelter accounts. Example: Colombo, Kottawa, Maharagama.'
+    )
+
+    shelter_address = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text='Required for shelter accounts. This is the default handover location for rescued animals.'
+    )
+
+    shelter_map_link = models.URLField(
+        blank=True,
+        help_text='Optional Google Maps or Apple Maps link for the shelter handover location.'
+    )
+
+    linked_shelter = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='linked_rescuers',
+        limit_choices_to={'role': 'SHELTER'},
+        verbose_name='Linked Shelter',
+        help_text='For rescuer accounts only. Admin verifies and links the rescuer to a shelter.'
     )
 
     def send_account_status_email(self):
@@ -94,6 +125,10 @@ class User(AbstractUser):
         if self.is_superuser:
             self.role = 'ADMIN'
             self.account_status = 'APPROVED'
+            self.linked_shelter = None
+
+        if self.role != 'RESCUER':
+            self.linked_shelter = None
 
         super().save(*args, **kwargs)
 

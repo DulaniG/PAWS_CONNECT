@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block title %}Completed Rescue Cases | PAWS CONNECT{% endblock %}
+
+{% block content %}
+
+<div class="paws-section-card mb-4">
+    <h2 class="paws-heading">Completed / Ended Rescue Cases</h2>
+    <p class="paws-subtitle mb-0">
+        View rescue cases that have been handed over to the shelter or ended as unable to locate.
+    </p>
+</div>
+
+<div class="paws-card">
+
+    {% if reports %}
+
+        <div class="row g-4">
+            {% for report in reports %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="paws-card h-100">
+
+                        {% if report.image %}
+                            <img src="{{ report.image.url }}" class="report-card-image" alt="Reported animal image">
+                        {% else %}
+                            <div class="report-card-placeholder">
+                                No image provided
+                            </div>
+                        {% endif %}
+
+                        <h5 class="paws-heading mb-2">
+                            {{ report.get_animal_type_display }} Rescue Case
+                        </h5>
+
+                        <p class="mb-1">
+                            <strong>Condition:</strong> {{ report.get_condition_display }}
+                        </p>
+
+                        <p class="mb-1">
+                            <strong>Priority:</strong>
+                            {% if report.priority == 'HIGH' %}
+                                <span class="badge bg-danger">High</span>
+                            {% elif report.priority == 'MEDIUM' %}
+                                <span class="badge bg-warning text-dark">Medium</span>
+                            {% elif report.priority == 'LOW' %}
+                                <span class="badge bg-success">Low</span>
+                            {% else %}
+                                <span class="text-muted">Not set</span>
+                            {% endif %}
+                        </p>
+
+                        <p class="mb-1">
+                            <strong>Final Rescue Status:</strong>
+                            {% if report.current_rescue_status == 'HANDED_OVER_TO_SHELTER' %}
+                                <span class="badge bg-success">Handed Over to Shelter</span>
+                            {% elif report.current_rescue_status == 'UNABLE_TO_LOCATE' %}
+                                <span class="badge bg-warning text-dark">Unable to Locate</span>
+                            {% else %}
+                                <span class="badge bg-secondary">
+                                    {{ report.get_current_rescue_status_display }}
+                                </span>
+                            {% endif %}
+                        </p>
+
+                        <p class="mb-1">
+                            <strong>Animal Status:</strong>
+                            {% if report.animal %}
+                                {% if report.animal.treatment_status == 'UNDER_TREATMENT' %}
+                                    <span class="badge bg-info text-dark">Under Treatment</span>
+                                {% elif report.animal.treatment_status == 'RECOVERING' %}
+                                    <span class="badge bg-primary">Recovering</span>
+                                {% elif report.animal.treatment_status == 'READY_FOR_ADOPTION' %}
+                                    <span class="badge bg-success">Ready for Adoption</span>
+                                {% elif report.animal.treatment_status == 'ADOPTED' %}
+                                    <span class="badge bg-primary">Adopted</span>
+                                {% elif report.animal.treatment_status == 'PASSED_AWAY' %}
+                                    <span class="badge bg-secondary">Passed Away</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">
+                                        {{ report.animal.get_treatment_status_display }}
+                                    </span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">Treatment record not started</span>
+                            {% endif %}
+                        </p>
+
+                        <p class="mb-1">
+                            <strong>Location:</strong> {{ report.location_description }}
+                        </p>
+
+                        <p class="mb-1">
+                            <strong>Assigned Shelter:</strong>
+                            {% if report.assigned_shelter %}
+                                {{ report.assigned_shelter.full_name|default:report.assigned_shelter.username }}
+                            {% else %}
+                                Not assigned
+                            {% endif %}
+                        </p>
+
+                        <p class="mb-3">
+                            <strong>Last Updated:</strong>
+                            {{ report.updated_at|date:"d M Y, h:i A" }}
+                        </p>
+
+                        <div class="alert alert-success">
+                            Rescue work for this case has ended.
+                        </div>
+
+                        <a href="/rescue/rescuer/cases/{{ report.id }}/" class="btn btn-outline-paws w-100">
+                            View Completed Case
+                        </a>
+
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+    {% else %}
+
+        <div class="text-center py-4">
+            <h5 class="paws-heading">No completed rescue cases yet</h5>
+            <p class="paws-subtitle mb-0">
+                Completed or ended rescue cases will appear here after rescue updates are submitted.
+            </p>
+        </div>
+
+    {% endif %}
+
+</div>
+
+<div class="mt-4">
+    <a href="/accounts/dashboard/" class="btn btn-outline-paws">
+        Back to Dashboard
+    </a>
+</div>
+
+{% endblock %}
