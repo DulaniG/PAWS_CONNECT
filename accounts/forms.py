@@ -1,24 +1,15 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 
-from .models import User
+from .models import User, UserReport
 
 
 class UserRegistrationForm(UserCreationForm):
-    role = forms.ChoiceField(
-        choices=[
-            ('PUBLIC', 'Public User'),
-            ('RESCUER', 'Rescuer'),
-            ('SHELTER', 'Shelter'),
-        ],
-        widget=forms.Select(attrs={'class': 'form-select'})
-    )
-
     linked_shelter = forms.ModelChoiceField(
         queryset=User.objects.none(),
         required=False,
-        empty_label='Select linked shelter',
         label='Linked Shelter',
+        empty_label='Select linked shelter',
         widget=forms.Select(attrs={'class': 'form-select'})
     )
 
@@ -39,35 +30,44 @@ class UserRegistrationForm(UserCreationForm):
         ]
 
         labels = {
+            'username': 'Username',
+            'full_name': 'Full Name',
+            'email': 'Email',
+            'phone_number': 'Phone Number',
+            'role': 'Account Role',
             'service_area': 'Service Area',
             'shelter_address': 'Shelter Address / Handover Location',
             'shelter_map_link': 'Shelter Map Link',
+            'linked_shelter': 'Linked Shelter',
         }
 
         widgets = {
             'username': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Choose a username'
+                'placeholder': 'Enter username'
             }),
             'full_name': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Enter your full name'
+                'placeholder': 'Enter full name'
             }),
             'email': forms.EmailInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Enter your email address'
+                'placeholder': 'Enter email address'
             }),
             'phone_number': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Enter phone number'
             }),
+            'role': forms.Select(attrs={
+                'class': 'form-select'
+            }),
             'service_area': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Example: Kottawa, Maharagama, Colombo'
+                'placeholder': 'Example: Kottawa, Maharagama, Homagama'
             }),
             'shelter_address': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Example: No. 25, Main Road, Maharagama'
+                'placeholder': 'Enter shelter handover address'
             }),
             'shelter_map_link': forms.URLInput(attrs={
                 'class': 'form-control',
@@ -77,6 +77,18 @@ class UserRegistrationForm(UserCreationForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        self.fields['role'].choices = [
+            ('PUBLIC', 'Public User'),
+            ('RESCUER', 'Rescuer'),
+            ('SHELTER', 'Shelter'),
+        ]
+
+        self.fields['linked_shelter'].queryset = User.objects.filter(
+            role='SHELTER',
+            account_status='APPROVED',
+            is_active=True
+        ).order_by('full_name', 'username')
 
         self.fields['password1'].widget.attrs.update({
             'class': 'form-control',
@@ -88,12 +100,6 @@ class UserRegistrationForm(UserCreationForm):
             'placeholder': 'Confirm password'
         })
 
-        self.fields['linked_shelter'].queryset = User.objects.filter(
-            role='SHELTER',
-            account_status='APPROVED',
-            is_active=True
-        ).order_by('full_name', 'username')
-
     def clean(self):
         cleaned_data = super().clean()
 
@@ -103,26 +109,13 @@ class UserRegistrationForm(UserCreationForm):
         shelter_address = cleaned_data.get('shelter_address')
         linked_shelter = cleaned_data.get('linked_shelter')
 
-        if role == 'RESCUER':
-            if not phone_number:
-                self.add_error(
-                    'phone_number',
-                    'Phone number is required for rescuer accounts.'
-                )
-
-            if not linked_shelter:
-                self.add_error(
-                    'linked_shelter',
-                    'Please select the shelter you are linked with.'
-                )
+        if role in ['RESCUER', 'SHELTER'] and not phone_number:
+            self.add_error(
+                'phone_number',
+                'Phone number is required for rescuer and shelter accounts.'
+            )
 
         if role == 'SHELTER':
-            if not phone_number:
-                self.add_error(
-                    'phone_number',
-                    'Phone number is required for shelter accounts.'
-                )
-
             if not service_area:
                 self.add_error(
                     'service_area',
@@ -135,12 +128,19 @@ class UserRegistrationForm(UserCreationForm):
                     'Shelter address / handover location is required for shelter accounts.'
                 )
 
+        if role == 'RESCUER' and not linked_shelter:
+            self.add_error(
+                'linked_shelter',
+                'Please select the shelter you are linked with.'
+            )
+
         return cleaned_data
 
     def save(self, commit=True):
         user = super().save(commit=False)
 
         role = self.cleaned_data.get('role')
+
         user.role = role
 
         if role == 'PUBLIC':
@@ -152,6 +152,7 @@ class UserRegistrationForm(UserCreationForm):
 
         elif role == 'RESCUER':
             user.account_status = 'PENDING'
+            user.linked_shelter = self.cleaned_data.get('linked_shelter')
             user.service_area = ''
             user.shelter_address = ''
             user.shelter_map_link = ''
@@ -168,16 +169,18 @@ class UserRegistrationForm(UserCreationForm):
 
 class UserLoginForm(AuthenticationForm):
     username = forms.CharField(
+        label='Username',
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Username'
+            'placeholder': 'Enter username'
         })
     )
 
     password = forms.CharField(
+        label='Password',
         widget=forms.PasswordInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Password'
+            'placeholder': 'Enter password'
         })
     )
 
@@ -195,51 +198,67 @@ class UserProfileUpdateForm(forms.ModelForm):
         ]
 
         labels = {
+            'full_name': 'Full Name',
+            'email': 'Email',
+            'phone_number': 'Phone Number',
             'service_area': 'Service Area',
             'shelter_address': 'Shelter Address / Handover Location',
             'shelter_map_link': 'Shelter Map Link',
         }
 
         widgets = {
-            'full_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'email': forms.EmailInput(attrs={'class': 'form-control'}),
-            'phone_number': forms.TextInput(attrs={'class': 'form-control'}),
-            'service_area': forms.TextInput(attrs={'class': 'form-control'}),
-            'shelter_address': forms.TextInput(attrs={'class': 'form-control'}),
-            'shelter_map_link': forms.URLInput(attrs={'class': 'form-control'}),
+            'full_name': forms.TextInput(attrs={
+                'class': 'form-control'
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'form-control'
+            }),
+            'phone_number': forms.TextInput(attrs={
+                'class': 'form-control'
+            }),
+            'service_area': forms.TextInput(attrs={
+                'class': 'form-control'
+            }),
+            'shelter_address': forms.TextInput(attrs={
+                'class': 'form-control'
+            }),
+            'shelter_map_link': forms.URLInput(attrs={
+                'class': 'form-control'
+            }),
         }
 
-    def clean(self):
-        cleaned_data = super().clean()
 
-        role = self.instance.role
-        phone_number = cleaned_data.get('phone_number')
-        service_area = cleaned_data.get('service_area')
-        shelter_address = cleaned_data.get('shelter_address')
+class UserReportForm(forms.ModelForm):
+    class Meta:
+        model = UserReport
+        fields = [
+            'reason',
+            'description',
+        ]
 
-        if role == 'RESCUER' and not phone_number:
-            self.add_error(
-                'phone_number',
-                'Phone number is required for rescuer accounts.'
-            )
+        labels = {
+            'reason': 'Reason for Reporting',
+            'description': 'Explanation',
+        }
 
-        if role == 'SHELTER':
-            if not phone_number:
-                self.add_error(
-                    'phone_number',
-                    'Phone number is required for shelter accounts.'
-                )
+        widgets = {
+            'reason': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 5,
+                'placeholder': 'Explain why this account seems suspicious or unsafe.'
+            }),
+        }
 
-            if not service_area:
-                self.add_error(
-                    'service_area',
-                    'Service area is required for shelter accounts.'
-                )
+    def clean_description(self):
+        description = self.cleaned_data.get('description')
 
-            if not shelter_address:
-                self.add_error(
-                    'shelter_address',
-                    'Shelter address / handover location is required for shelter accounts.'
-                )
+        if not description:
+            raise forms.ValidationError('Please explain why you are reporting this account.')
 
-        return cleaned_data
+        if len(description.strip()) < 20:
+            raise forms.ValidationError('Please write at least 20 characters explaining the issue.')
+
+        return description

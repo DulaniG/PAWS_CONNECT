@@ -289,4 +289,67 @@
     {% endif %}
 </div>
 
+<div class="container mb-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-warning-subtle">
+            <h5 class="mb-0">Account Safety</h5>
+        </div>
+
+        <div class="card-body">
+            <p class="text-muted mb-3">
+                If any account involved in this rescue case seems suspicious or unsafe, the shelter can report it to the administrator for review.
+            </p>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="border rounded p-3 h-100">
+                        <h6 class="fw-bold mb-2">Reporter Account</h6>
+
+                        <p class="mb-1">
+                            <strong>Name:</strong>
+                            {{ report.reporter.full_name|default:report.reporter.username }}
+                        </p>
+
+                        <p class="mb-1">
+                            <strong>Role:</strong>
+                            {{ report.reporter.get_role_display }}
+                        </p>
+
+                        {% include 'accounts/includes/report_user_button.html' with reported_user=report.reporter %}
+                    </div>
+                </div>
+
+                {% if report.assigned_rescuer %}
+                    <div class="col-md-6">
+                        <div class="border rounded p-3 h-100">
+                            <h6 class="fw-bold mb-2">Assigned Rescuer Account</h6>
+
+                            <p class="mb-1">
+                                <strong>Name:</strong>
+                                {{ report.assigned_rescuer.full_name|default:report.assigned_rescuer.username }}
+                            </p>
+
+                            <p class="mb-1">
+                                <strong>Role:</strong>
+                                {{ report.assigned_rescuer.get_role_display }}
+                            </p>
+
+                            <p class="mb-1">
+                                <strong>Linked Shelter:</strong>
+                                {% if report.assigned_rescuer.linked_shelter %}
+                                    {{ report.assigned_rescuer.linked_shelter.full_name|default:report.assigned_rescuer.linked_shelter.username }}
+                                {% else %}
+                                    Not provided
+                                {% endif %}
+                            </p>
+
+                            {% include 'accounts/includes/report_user_button.html' with reported_user=report.assigned_rescuer %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}

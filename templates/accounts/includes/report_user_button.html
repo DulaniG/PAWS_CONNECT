@@ -1,0 +1,6 @@
+{% if user.is_authenticated and reported_user and user.id != reported_user.id and reported_user.role != 'ADMIN' %}
+    <a href="{% url 'report_user' reported_user.id %}?next={{ request.get_full_path|urlencode }}"
+       class="btn btn-outline-danger btn-sm mt-2">
+        Report User
+    </a>
+{% endif %}

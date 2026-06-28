@@ -366,4 +366,45 @@
 
 </div>
 
+<div class="container mb-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-warning-subtle">
+            <h5 class="mb-0">Account Safety</h5>
+        </div>
+
+        <div class="card-body">
+            <p class="text-muted mb-3">
+                If the shelter account involved in this rescue case seems suspicious or unsafe, the rescuer can report it to the administrator for review.
+            </p>
+
+            {% if report.assigned_shelter %}
+                <div class="border rounded p-3">
+                    <h6 class="fw-bold mb-2">Assigned Shelter Account</h6>
+
+                    <p class="mb-1">
+                        <strong>Name:</strong>
+                        {{ report.assigned_shelter.full_name|default:report.assigned_shelter.username }}
+                    </p>
+
+                    <p class="mb-1">
+                        <strong>Role:</strong>
+                        {{ report.assigned_shelter.get_role_display }}
+                    </p>
+
+                    <p class="mb-1">
+                        <strong>Service Area:</strong>
+                        {{ report.assigned_shelter.service_area|default:"Not provided" }}
+                    </p>
+
+                    {% include 'accounts/includes/report_user_button.html' with reported_user=report.assigned_shelter %}
+                </div>
+            {% else %}
+                <p class="text-muted mb-0">
+                    No shelter account is linked to this rescue case yet.
+                </p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
 {% endblock %}

@@ -261,4 +261,41 @@
 
 </div>
 
+{% if adoption_request.status == 'APPROVED' and adoption_request.animal.shelter %}
+    <div class="container mb-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-warning-subtle">
+                <h5 class="mb-0">Account Safety</h5>
+            </div>
+
+            <div class="card-body">
+                <p class="text-muted mb-3">
+                    If the shelter account involved in this adoption request seems suspicious or unsafe, you can report it to the administrator.
+                </p>
+
+                <div class="border rounded p-3">
+                    <h6 class="fw-bold mb-2">Shelter Account</h6>
+
+                    <p class="mb-1">
+                        <strong>Name:</strong>
+                        {{ adoption_request.animal.shelter.full_name|default:adoption_request.animal.shelter.username }}
+                    </p>
+
+                    <p class="mb-1">
+                        <strong>Role:</strong>
+                        {{ adoption_request.animal.shelter.get_role_display }}
+                    </p>
+
+                    <p class="mb-1">
+                        <strong>Service Area:</strong>
+                        {{ adoption_request.animal.shelter.service_area|default:"Not provided" }}
+                    </p>
+
+                    {% include 'accounts/includes/report_user_button.html' with reported_user=adoption_request.animal.shelter %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
 {% endblock %}

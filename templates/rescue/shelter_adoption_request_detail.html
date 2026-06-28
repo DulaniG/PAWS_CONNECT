@@ -261,4 +261,39 @@
 
 </div>
 
+<div class="container mb-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-warning-subtle">
+            <h5 class="mb-0">Account Safety</h5>
+        </div>
+
+        <div class="card-body">
+            <p class="text-muted mb-3">
+                If the adoption requester seems suspicious, misleading, or unsafe, the shelter can report the account to the administrator.
+            </p>
+
+            <div class="border rounded p-3">
+                <h6 class="fw-bold mb-2">Adoption Requester Account</h6>
+
+                <p class="mb-1">
+                    <strong>Name:</strong>
+                    {{ adoption_request.requester.full_name|default:adoption_request.requester.username }}
+                </p>
+
+                <p class="mb-1">
+                    <strong>Username:</strong>
+                    {{ adoption_request.requester.username }}
+                </p>
+
+                <p class="mb-1">
+                    <strong>Role:</strong>
+                    {{ adoption_request.requester.get_role_display }}
+                </p>
+
+                {% include 'accounts/includes/report_user_button.html' with reported_user=adoption_request.requester %}
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}

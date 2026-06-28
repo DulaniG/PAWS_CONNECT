@@ -1,9 +1,11 @@
 from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.http import url_has_allowed_host_and_scheme
 
-from .forms import UserRegistrationForm, UserLoginForm, UserProfileUpdateForm
+from .forms import UserRegistrationForm, UserLoginForm, UserProfileUpdateForm, UserReportForm
+from .models import User
 
 
 def register_view(request):
@@ -81,3 +83,48 @@ def profile_view(request):
         form = UserProfileUpdateForm(instance=request.user)
 
     return render(request, 'accounts/profile.html', {'form': form})
+
+@login_required
+def report_user_view(request, user_id):
+    reported_user = get_object_or_404(User, id=user_id)
+
+    if reported_user == request.user:
+        messages.error(request, 'You cannot report your own account.')
+        return redirect('dashboard')
+
+    if reported_user.role == 'ADMIN':
+        messages.error(request, 'Administrator accounts cannot be reported through this form.')
+        return redirect('dashboard')
+
+    next_url = request.GET.get('next') or request.POST.get('next') or 'dashboard'
+
+    if not url_has_allowed_host_and_scheme(
+        url=next_url,
+        allowed_hosts={request.get_host()}
+    ):
+        next_url = 'dashboard'
+
+    if request.method == 'POST':
+        form = UserReportForm(request.POST)
+
+        if form.is_valid():
+            user_report = form.save(commit=False)
+            user_report.reported_by = request.user
+            user_report.reported_user = reported_user
+            user_report.related_page = next_url
+            user_report.save()
+
+            messages.success(
+                request,
+                'Your report has been submitted to the administrator for review.'
+            )
+
+            return redirect(next_url)
+    else:
+        form = UserReportForm()
+
+    return render(request, 'accounts/report_user.html', {
+        'form': form,
+        'reported_user': reported_user,
+        'next_url': next_url,
+    })
