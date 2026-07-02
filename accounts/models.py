@@ -244,3 +244,55 @@ class UserReport(models.Model):
 
     def __str__(self):
         return f'Report against {self.reported_user.username} by {self.reported_by.username}'
+    
+class Notification(models.Model):
+    NOTIFICATION_TYPE_CHOICES = [
+        ('REPORT_REVIEWED', 'Report Reviewed'),
+        ('CASE_ASSIGNED', 'Case Assigned'),
+        ('RESCUE_UPDATE', 'Rescue Update'),
+        ('TREATMENT_UPDATE', 'Treatment Update'),
+        ('ADOPTION_REQUEST', 'Adoption Request'),
+        ('ADOPTION_DECISION', 'Adoption Decision'),
+        ('ACCOUNT_SAFETY_REPORT', 'Account Safety Report'),
+        ('GENERAL', 'General'),
+    ]
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='notifications'
+    )
+
+    notification_type = models.CharField(
+        max_length=40,
+        choices=NOTIFICATION_TYPE_CHOICES,
+        default='GENERAL'
+    )
+
+    title = models.CharField(
+        max_length=150
+    )
+
+    message = models.TextField()
+
+    target_url = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text='Optional page link related to this notification.'
+    )
+
+    is_read = models.BooleanField(
+        default=False
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Notification'
+        verbose_name_plural = 'Notifications'
+
+    def __str__(self):
+        return f'{self.title} - {self.user.username}'

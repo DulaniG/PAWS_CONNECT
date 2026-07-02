@@ -136,12 +136,16 @@
             </div>
 
             {% if animal.treatment_status == 'PASSED_AWAY' %}
-                <div class="alert alert-secondary">
+                <div class="alert alert-dark">
                     This animal has been marked as Passed Away. Keep the treatment notes respectful and factual.
                 </div>
             {% elif animal.treatment_status == 'READY_FOR_ADOPTION' %}
                 <div class="alert alert-success">
-                    This animal is marked as Ready for Adoption and can be shown in the adoption section later.
+                    This animal is marked as Ready for Adoption and can be shown in the adoption section.
+                </div>
+            {% elif animal.treatment_status == 'ADOPTED' %}
+                <div class="alert alert-primary">
+                    This animal has been adopted. The case is now kept as a completed treatment and adoption record.
                 </div>
             {% endif %}
 
@@ -176,22 +180,40 @@
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Updated Animal Image</label>
-                    {{ form.animal_image }}
+                    <label class="form-label">Current Treatment Image</label>
+
+                    {% if animal.animal_image %}
+                        <div class="mb-2">
+                            <img src="{{ animal.animal_image.url }}" class="report-card-image" alt="Animal treatment image">
+                        </div>
+
+                        <div class="form-text">
+                            This is the current animal image saved in the treatment record.
+                        </div>
+                    {% else %}
+                        <div class="report-card-placeholder mb-2">
+                            No treatment image uploaded yet
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Upload New Animal Image</label>
+
+                    <input type="file"
+                           name="{{ form.animal_image.html_name }}"
+                           id="{{ form.animal_image.id_for_label }}"
+                           class="form-control"
+                           accept="image/jpeg,image/png,image/webp">
+
                     {% for error in form.animal_image.errors %}
                         <div class="text-danger small">{{ error }}</div>
                     {% endfor %}
+
                     <div class="form-text">
-                        Optional. JPG, PNG, or WEBP only. Maximum size: 5MB.
+                        Optional. Upload a new JPG, PNG, or WEBP image only. Maximum size: 5MB.
                     </div>
                 </div>
-
-                {% if animal.animal_image %}
-                    <div class="mb-3">
-                        <p class="mb-1"><strong>Current Treatment Image:</strong></p>
-                        <img src="{{ animal.animal_image.url }}" class="report-card-image" alt="Animal treatment image">
-                    </div>
-                {% endif %}
 
                 <div class="mb-3">
                     <label class="form-label">Health Status</label>
@@ -267,9 +289,9 @@
                 {% elif animal.treatment_status == 'READY_FOR_ADOPTION' %}
                     <span class="badge bg-success">Ready for Adoption</span>
                 {% elif animal.treatment_status == 'ADOPTED' %}
-                    <span class="badge bg-dark">Adopted</span>
+                    <span class="badge bg-primary">Adopted</span>
                 {% elif animal.treatment_status == 'PASSED_AWAY' %}
-                    <span class="badge bg-secondary">Passed Away</span>
+                    <span class="badge bg-dark">Passed Away</span>
                 {% endif %}
             </p>
 

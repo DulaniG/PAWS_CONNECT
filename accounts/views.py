@@ -3,9 +3,9 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.http import url_has_allowed_host_and_scheme
-
 from .forms import UserRegistrationForm, UserLoginForm, UserProfileUpdateForm, UserReportForm
-from .models import User
+from .models import Notification, User
+from .utils import create_admin_notification
 
 
 def register_view(request):
@@ -114,6 +114,16 @@ def report_user_view(request, user_id):
             user_report.related_page = next_url
             user_report.save()
 
+            create_admin_notification(
+                notification_type='ACCOUNT_SAFETY_REPORT',
+                title='New Account Safety Report',
+                message=(
+                    f'{request.user.username} reported {reported_user.username}. '
+                    f'Reason: {user_report.get_reason_display()}.'
+                ),
+                target_url='/admin/accounts/userreport/'
+            )
+
             messages.success(
                 request,
                 'Your report has been submitted to the administrator for review.'
@@ -128,3 +138,45 @@ def report_user_view(request, user_id):
         'reported_user': reported_user,
         'next_url': next_url,
     })
+
+@login_required
+def notifications_list_view(request):
+    notifications = Notification.objects.filter(
+        user=request.user
+    ).order_by('-created_at')
+
+    unread_count = notifications.filter(is_read=False).count()
+
+    return render(request, 'accounts/notifications.html', {
+        'notifications': notifications,
+        'unread_count': unread_count,
+    })
+
+
+@login_required
+def mark_notification_read_view(request, notification_id):
+    notification = get_object_or_404(
+        Notification,
+        id=notification_id,
+        user=request.user
+    )
+
+    notification.is_read = True
+    notification.save()
+
+    if notification.target_url:
+        return redirect(notification.target_url)
+
+    return redirect('notifications')
+
+
+@login_required
+def mark_all_notifications_read_view(request):
+    Notification.objects.filter(
+        user=request.user,
+        is_read=False
+    ).update(is_read=True)
+
+    messages.success(request, 'All notifications marked as read.')
+
+    return redirect('notifications')

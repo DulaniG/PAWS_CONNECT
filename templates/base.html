@@ -42,25 +42,41 @@
                             <li class="nav-item">
                                 <a class="nav-link" href="/rescue/report/">Report Animal</a>
                             </li>
+
                             <li class="nav-item">
                                 <a class="nav-link" href="/rescue/adoption/">Adoption</a>
                             </li>
+
                         {% elif user.role == 'RESCUER' %}
                             <li class="nav-item">
                                 <a class="nav-link" href="/rescue/rescuer/cases/">Assigned Cases</a>
                             </li>
+
                         {% elif user.role == 'SHELTER' %}
                             <li class="nav-item">
                                 <a class="nav-link" href="/rescue/shelter/reports/">Review Reports</a>
                             </li>
+
                             <li class="nav-item">
-                                <a class="nav-link" href="#">Manage Animals</a>
+                                <a class="nav-link" href="/rescue/shelter/treatment/">Manage Animals</a>
                             </li>
+
                         {% elif user.role == 'ADMIN' %}
                             <li class="nav-item">
                                 <a class="nav-link" href="/admin/">Admin Panel</a>
                             </li>
                         {% endif %}
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'notifications' %}" title="Notifications">
+                                🔔 Notifications
+                                {% if unread_notifications_count > 0 %}
+                                    <span class="badge bg-danger">
+                                        {{ unread_notifications_count }}
+                                    </span>
+                                {% endif %}
+                            </a>
+                        </li>
 
                         <li class="nav-item">
                             <a class="nav-link" href="/accounts/profile/">Profile</a>

@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+
+{% block title %}Completed Shelter Cases - PAWS CONNECT{% endblock %}
+
+{% block content %}
+<div class="py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Completed Shelter Cases</h2>
+            <p class="text-muted mb-0">
+                View finished rescue/adoption cases handled by the shelter.
+            </p>
+        </div>
+
+        <div class="d-flex gap-2">
+            <a href="{% url 'shelter_report_list' %}"
+               class="btn"
+               style="border: 1px solid #b8642f; color: #b8642f; border-radius: 50px; padding: 9px 22px; font-weight: 600;">
+                Back to Active Reports
+            </a>
+
+            <a href="{% url 'dashboard' %}"
+               class="btn"
+               style="border: 1px solid #b8642f; color: #b8642f; border-radius: 50px; padding: 9px 22px; font-weight: 600;">
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    {% if completed_reports %}
+        <div class="row g-3">
+            {% for report in completed_reports %}
+                <div class="col-lg-6">
+                    <div class="card shadow-sm border-0 h-100">
+
+                        {% if report.animal and report.animal.animal_image %}
+                            <div class="bg-light d-flex align-items-center justify-content-center"
+                                 style="height: 240px; overflow: hidden;">
+                                <img src="{{ report.animal.animal_image.url }}"
+                                     alt="Animal image"
+                                     style="max-height: 100%; max-width: 100%; object-fit: contain;">
+                            </div>
+                        {% elif report.image %}
+                            <div class="bg-light d-flex align-items-center justify-content-center"
+                                 style="height: 240px; overflow: hidden;">
+                                <img src="{{ report.image.url }}"
+                                     alt="Reported animal image"
+                                     style="max-height: 100%; max-width: 100%; object-fit: contain;">
+                            </div>
+                        {% else %}
+                            <div class="bg-light text-muted d-flex align-items-center justify-content-center"
+                                 style="height: 240px;">
+                                No image uploaded
+                            </div>
+                        {% endif %}
+
+                        <div class="card-body">
+
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="card-title mb-0">
+                                    {{ report.get_animal_type_display }}
+                                </h5>
+
+                                {% if report.current_rescue_status == 'UNABLE_TO_LOCATE' %}
+                                    <span class="badge bg-secondary">
+                                        Unable to Locate
+                                    </span>
+                                {% elif report.animal.treatment_status == 'ADOPTED' %}
+                                    <span class="badge bg-primary">
+                                        Adopted
+                                    </span>
+                                {% elif report.animal.treatment_status == 'PASSED_AWAY' %}
+                                    <span class="badge bg-dark">
+                                        Passed Away
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary">
+                                        Completed
+                                    </span>
+                                {% endif %}
+                            </div>
+
+                            <p class="mb-1">
+                                <strong>Reporter:</strong>
+                                {{ report.reporter.full_name|default:report.reporter.username }}
+                            </p>
+
+                            <p class="mb-1">
+                                <strong>Assigned Rescuer:</strong>
+                                {% if report.assigned_rescuer %}
+                                    {{ report.assigned_rescuer.full_name|default:report.assigned_rescuer.username }}
+                                {% else %}
+                                    Not assigned
+                                {% endif %}
+                            </p>
+
+                            <p class="mb-1">
+                                <strong>Rescue Status:</strong>
+                                {{ report.get_current_rescue_status_display }}
+                            </p>
+
+                            <p class="mb-1">
+                                <strong>Animal Status:</strong>
+                                {% if report.animal %}
+                                    {{ report.animal.get_treatment_status_display }}
+                                {% else %}
+                                    Not available
+                                {% endif %}
+                            </p>
+
+                            <p class="mb-1">
+                                <strong>Location:</strong>
+                                {{ report.location_description|default:"Not provided" }}
+                            </p>
+
+                            <a href="{% url 'shelter_report_detail' report.id %}"
+                               class="btn mt-2"
+                               style="background-color: #b8642f; border-color: #b8642f; color: white; border-radius: 50px; padding: 8px 22px; font-weight: 700;">
+                                View Case Detail
+                            </a>
+
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="card shadow-sm border-0">
+            <div class="card-body text-center py-5">
+                <h5 class="text-muted mb-2">No completed cases yet</h5>
+                <p class="text-muted mb-0">
+                    Adopted, passed away, or unable-to-locate cases will appear here.
+                </p>
+            </div>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

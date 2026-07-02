@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}Notifications - PAWS CONNECT{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Notifications</h2>
+            <p class="text-muted mb-0">
+                View system alerts and rescue/adoption updates.
+            </p>
+        </div>
+
+        <div>
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary btn-sm">
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    {% if unread_count > 0 %}
+        <div class="alert alert-info d-flex justify-content-between align-items-center">
+            <span>
+                You have <strong>{{ unread_count }}</strong> unread notification{{ unread_count|pluralize }}.
+            </span>
+
+            <a href="{% url 'mark_all_notifications_read' %}" class="btn btn-sm btn-primary">
+                Mark All as Read
+            </a>
+        </div>
+    {% endif %}
+
+    {% if notifications %}
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-0">
+
+                {% for notification in notifications %}
+                    <div class="p-3 border-bottom {% if not notification.is_read %}bg-warning-subtle{% endif %}">
+                        <div class="d-flex justify-content-between align-items-start gap-3">
+
+                            <div>
+                                <h5 class="mb-1">
+                                    {{ notification.title }}
+                                </h5>
+
+                                <p class="mb-2 text-muted">
+                                    {{ notification.message }}
+                                </p>
+
+                                <div class="small text-muted">
+                                    <strong>Type:</strong> {{ notification.get_notification_type_display }}
+                                    |
+                                    <strong>Date:</strong> {{ notification.created_at|date:"M d, Y H:i" }}
+                                    |
+                                    <strong>Status:</strong>
+                                    {% if notification.is_read %}
+                                        Read
+                                    {% else %}
+                                        Unread
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="text-end">
+                                {% if notification.is_read %}
+                                    {% if notification.target_url %}
+                                        <a href="{{ notification.target_url }}" class="btn btn-outline-secondary btn-sm">
+                                            Open
+                                        </a>
+                                    {% endif %}
+                                {% else %}
+                                    <a href="{% url 'mark_notification_read' notification.id %}" class="btn btn-primary btn-sm">
+                                        Open / Mark Read
+                                    </a>
+                                {% endif %}
+                            </div>
+
+                        </div>
+                    </div>
+                {% endfor %}
+
+            </div>
+        </div>
+    {% else %}
+        <div class="card shadow-sm border-0">
+            <div class="card-body text-center py-5">
+                <h5 class="text-muted mb-2">No notifications yet</h5>
+                <p class="text-muted mb-0">
+                    System updates will appear here when rescue, treatment, adoption, or account safety actions happen.
+                </p>
+            </div>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

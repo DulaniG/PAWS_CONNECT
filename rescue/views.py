@@ -2,6 +2,10 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
+from django.urls import reverse
+from django.db.models import Q
+
+from accounts.utils import create_notification, create_shelter_notifications
 
 from .forms import (
     ReportForm,
@@ -17,33 +21,41 @@ from .models import Report, Animal, AdoptionRequest
 
 @login_required
 def report_animal_view(request):
-    if request.user.role == 'ADMIN':
-        messages.error(request, 'Administrators do not submit animal reports from this page.')
-        return redirect('dashboard')
-
     if request.method == 'POST':
         form = ReportForm(request.POST, request.FILES)
 
         if form.is_valid():
             report = form.save(commit=False)
             report.reporter = request.user
+
+            if not report.reporter_contact_phone and request.user.phone_number:
+                report.reporter_contact_phone = request.user.phone_number
+
             report.save()
+
+            create_shelter_notifications(
+                notification_type='REPORT_REVIEWED',
+                title='New Animal Report Submitted',
+                message=(
+                    f'A new animal report has been submitted by '
+                    f'{request.user.full_name or request.user.username}. '
+                    f'Suggested priority: {report.get_suggested_priority_display()}.'
+                ),
+                target_url='/rescue/shelter/reports/'
+            )
 
             messages.success(
                 request,
-                f'Animal report submitted successfully. Suggested priority: {report.get_suggested_priority_display()}. A shelter will review the report and set the final priority.'
+                'Animal report submitted successfully. A shelter will review it soon.'
             )
 
             return redirect('my_reports')
     else:
-        initial_data = {}
+        form = ReportForm()
 
-        if request.user.phone_number:
-            initial_data['reporter_contact_phone'] = request.user.phone_number
-
-        form = ReportForm(initial=initial_data)
-
-    return render(request, 'rescue/report_animal.html', {'form': form})
+    return render(request, 'rescue/report_animal.html', {
+        'form': form,
+    })
 
 
 @login_required
@@ -81,23 +93,159 @@ def my_report_detail_view(request, report_id):
 @login_required
 def shelter_report_list_view(request):
     if request.user.role != 'SHELTER':
-        messages.error(request, 'Only shelter users can review animal reports.')
+        messages.error(request, 'Only shelter users can view shelter reports.')
         return redirect('dashboard')
 
-    reports = Report.objects.all().order_by('-reported_at')
+    completed_report_ids = Animal.objects.filter(
+        treatment_status__in=['ADOPTED', 'PASSED_AWAY']
+    ).values_list('report_id', flat=True)
+
+    new_reports = Report.objects.filter(
+        report_status='SUBMITTED'
+    ).exclude(
+        id__in=completed_report_ids
+    ).order_by('-reported_at')
+
+    reviewed_count = Report.objects.filter(
+        assigned_shelter=request.user,
+        report_status='REVIEWED'
+    ).exclude(
+        id__in=completed_report_ids
+    ).count()
+
+    assigned_count = Report.objects.filter(
+        assigned_shelter=request.user,
+        report_status='ASSIGNED'
+    ).exclude(
+        current_rescue_status__in=['HANDED_OVER_TO_SHELTER', 'UNABLE_TO_LOCATE']
+    ).exclude(
+        id__in=completed_report_ids
+    ).count()
+
+    handover_count = Report.objects.filter(
+        assigned_shelter=request.user,
+        current_rescue_status='HANDED_OVER_TO_SHELTER'
+    ).exclude(
+        id__in=completed_report_ids
+    ).count()
+
+    completed_count = Report.objects.filter(
+        Q(assigned_shelter=request.user),
+        Q(current_rescue_status='UNABLE_TO_LOCATE') |
+        Q(animal__treatment_status__in=['ADOPTED', 'PASSED_AWAY'])
+    ).count()
 
     return render(request, 'rescue/shelter_report_list.html', {
-        'reports': reports
+        'new_reports': new_reports,
+        'reviewed_count': reviewed_count,
+        'assigned_count': assigned_count,
+        'handover_count': handover_count,
+        'completed_count': completed_count,
+    })
+
+
+@login_required
+def shelter_reviewed_reports_view(request):
+    if request.user.role != 'SHELTER':
+        messages.error(request, 'Only shelter users can view reviewed reports.')
+        return redirect('dashboard')
+
+    completed_report_ids = Animal.objects.filter(
+        treatment_status__in=['ADOPTED', 'PASSED_AWAY']
+    ).values_list('report_id', flat=True)
+
+    reports = Report.objects.filter(
+        assigned_shelter=request.user,
+        report_status='REVIEWED'
+    ).exclude(
+        id__in=completed_report_ids
+    ).select_related(
+        'reporter',
+        'assigned_rescuer'
+    ).order_by('-updated_at')
+
+    return render(request, 'rescue/shelter_stage_reports.html', {
+        'reports': reports,
+        'stage_title': 'Reviewed Reports Waiting for Assignment',
+        'stage_description': 'Reports that have been reviewed by the shelter but have not yet been assigned to a rescuer.',
+        'stage_badge': 'Reviewed',
+        'stage_key': 'reviewed',
+        'empty_message': 'No reviewed reports are waiting for assignment.',
+    })
+
+
+@login_required
+def shelter_assigned_reports_view(request):
+    if request.user.role != 'SHELTER':
+        messages.error(request, 'Only shelter users can view assigned rescue cases.')
+        return redirect('dashboard')
+
+    completed_report_ids = Animal.objects.filter(
+        treatment_status__in=['ADOPTED', 'PASSED_AWAY']
+    ).values_list('report_id', flat=True)
+
+    reports = Report.objects.filter(
+        assigned_shelter=request.user,
+        report_status='ASSIGNED'
+    ).exclude(
+        current_rescue_status__in=['HANDED_OVER_TO_SHELTER', 'UNABLE_TO_LOCATE']
+    ).exclude(
+        id__in=completed_report_ids
+    ).select_related(
+        'reporter',
+        'assigned_rescuer'
+    ).order_by('-assigned_at')
+
+    return render(request, 'rescue/shelter_stage_reports.html', {
+        'reports': reports,
+        'stage_title': 'Assigned Rescue Cases In Progress',
+        'stage_description': 'Rescue cases that have already been assigned to a rescuer and are still active.',
+        'stage_badge': 'Assigned',
+        'stage_key': 'assigned',
+        'empty_message': 'No assigned rescue cases are currently in progress.',
+    })
+
+
+@login_required
+def shelter_handover_reports_view(request):
+    if request.user.role != 'SHELTER':
+        messages.error(request, 'Only shelter users can view handover and treatment cases.')
+        return redirect('dashboard')
+
+    completed_report_ids = Animal.objects.filter(
+        treatment_status__in=['ADOPTED', 'PASSED_AWAY']
+    ).values_list('report_id', flat=True)
+
+    reports = Report.objects.filter(
+        assigned_shelter=request.user,
+        current_rescue_status='HANDED_OVER_TO_SHELTER'
+    ).exclude(
+        id__in=completed_report_ids
+    ).select_related(
+        'reporter',
+        'assigned_rescuer',
+        'animal'
+    ).order_by('-updated_at')
+
+    return render(request, 'rescue/shelter_stage_reports.html', {
+        'reports': reports,
+        'stage_title': 'Handed Over / Treatment Stage',
+        'stage_description': 'Cases where the animal has been handed over to the shelter and treatment/adoption preparation may continue.',
+        'stage_badge': 'Handed Over',
+        'stage_key': 'handover',
+        'empty_message': 'No handed-over cases are currently waiting in treatment stage.',
     })
 
 
 @login_required
 def shelter_report_detail_view(request, report_id):
     if request.user.role != 'SHELTER':
-        messages.error(request, 'Only shelter users can review animal reports.')
+        messages.error(request, 'Only shelter users can review reports.')
         return redirect('dashboard')
 
     report = get_object_or_404(Report, id=report_id)
+
+    previous_verification_status = report.verification_status
 
     if request.method == 'POST':
         form = ReportReviewForm(request.POST, instance=report)
@@ -105,28 +253,32 @@ def shelter_report_detail_view(request, report_id):
         if form.is_valid():
             reviewed_report = form.save(commit=False)
             reviewed_report.assigned_shelter = request.user
-            reviewed_report.verified_at = timezone.now()
 
-            if reviewed_report.verification_status in ['ANIMAL_NOT_FOUND', 'ALREADY_RESCUED']:
-                reviewed_report.report_status = 'CLOSED'
-            else:
+            if reviewed_report.report_status == 'SUBMITTED':
                 reviewed_report.report_status = 'REVIEWED'
+
+            if reviewed_report.verification_status != previous_verification_status:
+                reviewed_report.verified_at = timezone.now()
 
             reviewed_report.save()
 
-            messages.success(
-                request,
-                'Report reviewed successfully. Final priority and verification status have been saved.'
+            create_notification(
+                user=reviewed_report.reporter,
+                notification_type='REPORT_REVIEWED',
+                title='Animal Report Reviewed',
+                message=(
+                    f'Your animal report has been reviewed by '
+                    f'{request.user.full_name or request.user.username}. '
+                    f'Final priority: {reviewed_report.get_priority_display()}.'
+                ),
+                target_url=reverse('my_report_detail', args=[reviewed_report.id])
             )
 
-            return redirect('shelter_report_list')
+            messages.success(request, 'Report reviewed successfully.')
+
+            return redirect('shelter_report_detail', report_id=reviewed_report.id)
     else:
         form = ReportReviewForm(instance=report)
-
-    assignment_form = RescueAssignmentForm(
-        instance=report,
-        shelter_user=request.user
-    )
 
     rescue_updates = report.rescue_updates.all().order_by('-created_at')
 
@@ -139,7 +291,7 @@ def shelter_report_detail_view(request, report_id):
     return render(request, 'rescue/shelter_report_detail.html', {
         'report': report,
         'form': form,
-        'assignment_form': assignment_form,
+        'review_form': form,
         'rescue_updates': rescue_updates,
         'animal': animal,
     })
@@ -153,39 +305,60 @@ def assign_rescuer_view(request, report_id):
 
     report = get_object_or_404(Report, id=report_id)
 
-    if not report.priority:
-        messages.error(request, 'Final priority must be set before assigning a rescuer.')
-        return redirect('shelter_report_detail', report_id=report.id)
-
-    if report.verification_status != 'CONFIRMED_STILL_THERE':
-        messages.error(
-            request,
-            'Animal must be verified as Confirmed Still There before assigning a rescuer.'
-        )
-        return redirect('shelter_report_detail', report_id=report.id)
-
     if request.method == 'POST':
-        assignment_form = RescueAssignmentForm(
+        form = RescueAssignmentForm(
             request.POST,
-            instance=report,
             shelter_user=request.user
         )
 
-        if assignment_form.is_valid():
-            assigned_report = assignment_form.save(commit=False)
-            assigned_report.assigned_shelter = request.user
-            assigned_report.report_status = 'ASSIGNED'
-            assigned_report.assigned_at = timezone.now()
-            assigned_report.save()
+        if form.is_valid():
+            assigned_rescuer = form.cleaned_data.get('assigned_rescuer')
+            assignment_notes = form.cleaned_data.get('assignment_notes')
+
+            report.assigned_shelter = request.user
+            report.assigned_rescuer = assigned_rescuer
+            report.assignment_notes = assignment_notes
+            report.report_status = 'ASSIGNED'
+            report.current_rescue_status = 'NOT_STARTED'
+            report.assigned_at = timezone.now()
+            report.save()
+
+            create_notification(
+                user=assigned_rescuer,
+                notification_type='CASE_ASSIGNED',
+                title='New Rescue Case Assigned',
+                message=(
+                    f'A new rescue case has been assigned to you by '
+                    f'{request.user.full_name or request.user.username}. '
+                    f'Priority: {report.get_priority_display()}.'
+                ),
+                target_url=reverse('rescuer_case_detail', args=[report.id])
+            )
+
+            create_notification(
+                user=report.reporter,
+                notification_type='CASE_ASSIGNED',
+                title='Rescue Case Assigned',
+                message=(
+                    'Your animal report has been assigned to a rescuer. '
+                    f'Current rescue status: {report.get_current_rescue_status_display()}.'
+                ),
+                target_url=reverse('my_report_detail', args=[report.id])
+            )
 
             messages.success(
                 request,
-                f'Report assigned successfully to {assigned_report.assigned_rescuer.full_name or assigned_report.assigned_rescuer.username}.'
+                f'Rescuer {assigned_rescuer.full_name or assigned_rescuer.username} assigned successfully.'
             )
 
-            return redirect('shelter_report_list')
+            return redirect('shelter_report_detail', report_id=report.id)
+    else:
+        form = RescueAssignmentForm(shelter_user=request.user)
 
-    return redirect('shelter_report_detail', report_id=report.id)
+    return render(request, 'rescue/assign_rescuer.html', {
+        'report': report,
+        'form': form,
+    })
 
 
 @login_required
@@ -272,6 +445,29 @@ def rescuer_case_detail_view(request, report_id):
             rescue_update.rescuer = request.user
             rescue_update.save()
 
+            create_notification(
+                user=report.reporter,
+                notification_type='RESCUE_UPDATE',
+                title='Rescue Status Updated',
+                message=(
+                    f'The rescue status for your animal report was updated to '
+                    f'{rescue_update.get_status_display()}.'
+                ),
+                target_url=reverse('my_report_detail', args=[report.id])
+            )
+
+            if report.assigned_shelter:
+                create_notification(
+                    user=report.assigned_shelter,
+                    notification_type='RESCUE_UPDATE',
+                    title='Rescue Case Updated',
+                    message=(
+                        f'{request.user.full_name or request.user.username} updated the rescue case status to '
+                        f'{rescue_update.get_status_display()}.'
+                    ),
+                    target_url=reverse('shelter_report_detail', args=[report.id])
+                )
+
             messages.success(
                 request,
                 f'Rescue status updated successfully to {rescue_update.get_status_display()}.'
@@ -317,63 +513,57 @@ def animal_treatment_detail_view(request, report_id):
     report = get_object_or_404(
         Report,
         id=report_id,
-        assigned_shelter=request.user
+        assigned_shelter=request.user,
+        current_rescue_status='HANDED_OVER_TO_SHELTER'
     )
 
-    if report.current_rescue_status != 'HANDED_OVER_TO_SHELTER':
-        messages.error(
-            request,
-            'Treatment tracking can start only after the rescue status is Handed Over to Shelter.'
+    try:
+        animal = report.animal
+    except Animal.DoesNotExist:
+        animal = Animal(
+            report=report,
+            shelter=request.user,
+            assigned_rescuer=report.assigned_rescuer
         )
-        return redirect('shelter_treatment_list')
-
-    animal, created = Animal.objects.get_or_create(
-        report=report,
-        defaults={
-            'shelter': request.user,
-            'assigned_rescuer': report.assigned_rescuer,
-            'arrival_date': timezone.localdate(),
-            'treatment_status': 'UNDER_TREATMENT',
-        }
-    )
-
-    if not animal.shelter:
-        animal.shelter = request.user
-
-    if not animal.assigned_rescuer:
-        animal.assigned_rescuer = report.assigned_rescuer
-
-    if not animal.arrival_date:
-        animal.arrival_date = timezone.localdate()
-
-    animal.save()
 
     if request.method == 'POST':
-        form = AnimalTreatmentForm(request.POST, request.FILES, instance=animal)
+        form = AnimalTreatmentForm(
+            request.POST,
+            request.FILES,
+            instance=animal
+        )
 
         if form.is_valid():
-            updated_animal = form.save(commit=False)
-            updated_animal.shelter = request.user
-            updated_animal.assigned_rescuer = report.assigned_rescuer
-            updated_animal.save()
+            treatment_record = form.save(commit=False)
+            treatment_record.report = report
+            treatment_record.shelter = request.user
+            treatment_record.assigned_rescuer = report.assigned_rescuer
+            treatment_record.save()
+
+            create_notification(
+                user=report.reporter,
+                notification_type='TREATMENT_UPDATE',
+                title='Treatment Status Updated',
+                message=(
+                    f'The treatment status for your reported animal has been updated to '
+                    f'{treatment_record.get_treatment_status_display()}.'
+                ),
+                target_url=reverse('my_report_detail', args=[report.id])
+            )
 
             messages.success(
                 request,
-                f'Treatment record saved successfully. Current status: {updated_animal.get_treatment_status_display()}.'
+                'Animal treatment record saved successfully.'
             )
 
             return redirect('animal_treatment_detail', report_id=report.id)
     else:
         form = AnimalTreatmentForm(instance=animal)
 
-    rescue_updates = report.rescue_updates.all().order_by('-created_at')
-
     return render(request, 'rescue/animal_treatment_detail.html', {
         'report': report,
         'animal': animal,
         'form': form,
-        'rescue_updates': rescue_updates,
-        'created': created,
     })
 
 
@@ -407,8 +597,8 @@ def available_animals_view(request):
 @login_required
 def animal_adoption_detail_view(request, animal_id):
     if request.user.role == 'ADMIN':
-        messages.error(request, 'Administrators do not submit adoption requests from this page.')
-        return redirect('dashboard')
+        messages.error(request, 'Administrators cannot submit adoption requests.')
+        return redirect('available_animals')
 
     animal = get_object_or_404(
         Animal,
@@ -416,15 +606,15 @@ def animal_adoption_detail_view(request, animal_id):
         treatment_status='READY_FOR_ADOPTION'
     )
 
-    existing_active_request = AdoptionRequest.objects.filter(
+    existing_request = AdoptionRequest.objects.filter(
         animal=animal,
         requester=request.user,
         status__in=['PENDING', 'APPROVED']
-    ).order_by('-created_at').first()
+    ).first()
 
     if request.method == 'POST':
-        if existing_active_request:
-            messages.error(
+        if existing_request:
+            messages.warning(
                 request,
                 'You already have an active adoption request for this animal.'
             )
@@ -438,25 +628,30 @@ def animal_adoption_detail_view(request, animal_id):
             adoption_request.requester = request.user
             adoption_request.save()
 
-            messages.success(
-                request,
-                'Adoption request submitted successfully. The shelter will review your request.'
+            create_notification(
+                user=animal.shelter,
+                notification_type='ADOPTION_REQUEST',
+                title='New Adoption Request',
+                message=(
+                    f'{request.user.full_name or request.user.username} submitted an adoption request '
+                    f'for {animal.name or animal.report.get_animal_type_display()}.'
+                ),
+                target_url=reverse('shelter_adoption_request_detail', args=[adoption_request.id])
             )
 
-            return redirect('my_adoption_requests')
+            messages.success(
+                request,
+                'Your adoption request has been submitted successfully.'
+            )
+
+            return redirect('my_adoption_request_detail', request_id=adoption_request.id)
     else:
         form = AdoptionRequestForm()
-
-    previous_requests = AdoptionRequest.objects.filter(
-        animal=animal,
-        requester=request.user
-    ).order_by('-created_at')
 
     return render(request, 'rescue/animal_adoption_detail.html', {
         'animal': animal,
         'form': form,
-        'existing_active_request': existing_active_request,
-        'previous_requests': previous_requests,
+        'existing_request': existing_request,
     })
 
 
@@ -505,11 +700,12 @@ def my_adoption_request_detail_view(request, request_id):
 @login_required
 def shelter_adoption_requests_view(request):
     if request.user.role != 'SHELTER':
-        messages.error(request, 'Only shelter users can review adoption requests.')
+        messages.error(request, 'Only shelter users can view adoption requests.')
         return redirect('dashboard')
 
     adoption_requests = AdoptionRequest.objects.filter(
-        animal__shelter=request.user
+        animal__shelter=request.user,
+        status='PENDING'
     ).select_related(
         'animal',
         'animal__report',
@@ -517,7 +713,7 @@ def shelter_adoption_requests_view(request):
     ).order_by('-created_at')
 
     return render(request, 'rescue/shelter_adoption_requests.html', {
-        'adoption_requests': adoption_requests
+        'adoption_requests': adoption_requests,
     })
 
 
@@ -534,67 +730,112 @@ def shelter_adoption_request_detail_view(request, request_id):
     )
 
     if request.method == 'POST':
-        if adoption_request.status != 'PENDING':
-            messages.error(request, 'This adoption request has already been processed.')
-            return redirect('shelter_adoption_request_detail', request_id=adoption_request.id)
-
-        form = AdoptionDecisionForm(request.POST, instance=adoption_request)
+        form = AdoptionDecisionForm(
+            request.POST,
+            instance=adoption_request
+        )
 
         if form.is_valid():
-            updated_request = form.save(commit=False)
-            updated_request.processed_by = request.user
-            updated_request.processed_at = timezone.now()
-            updated_request.save()
+            decision = form.save(commit=False)
+            decision.processed_by = request.user
+            decision.processed_at = timezone.now()
+            decision.save()
 
-            animal = updated_request.animal
+            animal = decision.animal
 
-            if updated_request.status == 'APPROVED':
-                if animal.treatment_status != 'READY_FOR_ADOPTION':
-                    messages.error(
-                        request,
-                        'This animal is no longer ready for adoption.'
-                    )
-                    return redirect('shelter_adoption_request_detail', request_id=adoption_request.id)
-
+            if decision.status == 'APPROVED':
                 animal.treatment_status = 'ADOPTED'
 
-                if updated_request.decision_notes:
-                    animal.outcome_notes = updated_request.decision_notes
+                if decision.decision_notes:
+                    animal.outcome_notes = decision.decision_notes
                 else:
-                    animal.outcome_notes = (
-                        f'Adoption approved for {updated_request.requester.full_name or updated_request.requester.username}.'
-                    )
+                    animal.outcome_notes = 'Adoption request approved by shelter.'
 
                 animal.save()
 
-                AdoptionRequest.objects.filter(
+                other_pending_requests = AdoptionRequest.objects.filter(
                     animal=animal,
                     status='PENDING'
-                ).exclude(
-                    id=updated_request.id
-                ).update(
-                    status='REJECTED',
-                    processed_by=request.user,
-                    processed_at=timezone.now(),
-                    decision_notes='Another adoption request was approved for this animal.'
+                ).exclude(id=decision.id)
+
+                for other_request in other_pending_requests:
+                    other_request.status = 'REJECTED'
+                    other_request.processed_by = request.user
+                    other_request.processed_at = timezone.now()
+                    other_request.decision_notes = (
+                        'This request was rejected because another adoption request was approved.'
+                    )
+                    other_request.save()
+
+                    create_notification(
+                        user=other_request.requester,
+                        notification_type='ADOPTION_DECISION',
+                        title='Adoption Request Rejected',
+                        message=(
+                            f'Your adoption request for {animal.name or animal.report.get_animal_type_display()} '
+                            'was rejected because another request was approved.'
+                        ),
+                        target_url=reverse('my_adoption_request_detail', args=[other_request.id])
+                    )
+
+                create_notification(
+                    user=decision.requester,
+                    notification_type='ADOPTION_DECISION',
+                    title='Adoption Request Approved',
+                    message=(
+                        f'Your adoption request for {animal.name or animal.report.get_animal_type_display()} '
+                        'has been approved. Please open the request details to view adoption handover information.'
+                    ),
+                    target_url=reverse('my_adoption_request_detail', args=[decision.id])
                 )
 
                 messages.success(
                     request,
-                    'Adoption request approved successfully. Animal status changed to Adopted.'
+                    'Adoption request approved successfully. The animal has been marked as adopted.'
                 )
 
-            elif updated_request.status == 'REJECTED':
+            elif decision.status == 'REJECTED':
+                create_notification(
+                    user=decision.requester,
+                    notification_type='ADOPTION_DECISION',
+                    title='Adoption Request Rejected',
+                    message=(
+                        f'Your adoption request for {animal.name or animal.report.get_animal_type_display()} '
+                        'has been rejected by the shelter.'
+                    ),
+                    target_url=reverse('my_adoption_request_detail', args=[decision.id])
+                )
+
                 messages.success(
                     request,
                     'Adoption request rejected successfully.'
                 )
 
-            return redirect('shelter_adoption_requests')
+            return redirect('shelter_adoption_request_detail', request_id=decision.id)
     else:
         form = AdoptionDecisionForm(instance=adoption_request)
 
     return render(request, 'rescue/shelter_adoption_request_detail.html', {
         'adoption_request': adoption_request,
         'form': form,
+    })
+
+@login_required
+def shelter_completed_cases_view(request):
+    if request.user.role != 'SHELTER':
+        messages.error(request, 'Only shelter users can view completed shelter cases.')
+        return redirect('dashboard')
+
+    completed_reports = Report.objects.filter(
+        Q(assigned_shelter=request.user),
+        Q(current_rescue_status='UNABLE_TO_LOCATE') |
+        Q(animal__treatment_status__in=['ADOPTED', 'PASSED_AWAY'])
+    ).select_related(
+        'reporter',
+        'assigned_rescuer',
+        'animal'
+    ).order_by('-updated_at')
+
+    return render(request, 'rescue/shelter_completed_cases.html', {
+        'completed_reports': completed_reports,
     })
