@@ -16,7 +16,7 @@ from .forms import (
     AdoptionRequestForm,
     AdoptionDecisionForm,
 )
-from .models import Report, Animal, AdoptionRequest
+from .models import Report, RescueUpdate, Animal, AdoptionRequest
 
 
 @login_required
@@ -245,9 +245,45 @@ def shelter_report_detail_view(request, report_id):
 
     report = get_object_or_404(Report, id=report_id)
 
+    rescue_updates = report.rescue_updates.all().order_by('-created_at')
+
+    animal = None
+    try:
+        animal = report.animal
+    except Animal.DoesNotExist:
+        animal = None
+
+    approved_adoption_request = None
+    if animal:
+        approved_adoption_request = animal.adoption_requests.filter(
+            status='APPROVED'
+        ).select_related(
+            'requester',
+            'processed_by'
+        ).order_by(
+            '-processed_at',
+            '-updated_at'
+        ).first()
+
+    is_completed_case = (
+        report.report_status == 'CLOSED'
+        or report.current_rescue_status == 'UNABLE_TO_LOCATE'
+        or (
+            animal is not None
+            and animal.treatment_status in ['ADOPTED', 'PASSED_AWAY']
+        )
+    )
+
     previous_verification_status = report.verification_status
 
     if request.method == 'POST':
+        if is_completed_case:
+            messages.warning(
+                request,
+                'This case is already completed, so review and assignment details can no longer be changed from this page.'
+            )
+            return redirect('shelter_report_detail', report_id=report.id)
+
         form = ReportReviewForm(request.POST, instance=report)
 
         if form.is_valid():
@@ -280,20 +316,17 @@ def shelter_report_detail_view(request, report_id):
     else:
         form = ReportReviewForm(instance=report)
 
-    rescue_updates = report.rescue_updates.all().order_by('-created_at')
-
-    animal = None
-    try:
-        animal = report.animal
-    except Animal.DoesNotExist:
-        animal = None
+    assignment_form = RescueAssignmentForm(shelter_user=request.user)
 
     return render(request, 'rescue/shelter_report_detail.html', {
         'report': report,
         'form': form,
         'review_form': form,
+        'assignment_form': assignment_form,
         'rescue_updates': rescue_updates,
         'animal': animal,
+        'approved_adoption_request': approved_adoption_request,
+        'is_completed_case': is_completed_case,
     })
 
 
@@ -352,6 +385,12 @@ def assign_rescuer_view(request, report_id):
             )
 
             return redirect('shelter_report_detail', report_id=report.id)
+
+        messages.error(
+            request,
+            'Please select a linked approved rescuer and add assignment instructions before assigning the case.'
+        )
+
     else:
         form = RescueAssignmentForm(shelter_user=request.user)
 

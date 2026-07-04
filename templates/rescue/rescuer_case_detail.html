@@ -47,16 +47,23 @@
             </p>
 
             {% if report.latitude and report.longitude %}
-                <p class="mb-1">
-                    <strong>Coordinates:</strong> {{ report.latitude }}, {{ report.longitude }}
-                </p>
+            <p class="mb-1">
+                <strong>Coordinates:</strong> {{ report.latitude }}, {{ report.longitude }}
+            </p>
+            
+            <p class="mb-1">
+                <strong>Captured Location:</strong>
+                <a href="https://www.google.com/maps?q={{ report.latitude }},{{ report.longitude }}" target="_blank">
+                    Open Animal Location in Map
+                </a>
+            </p>
             {% endif %}
-
+            
             {% if report.map_link %}
-                <p class="mb-1">
-                    <strong>Animal Location Map:</strong>
-                    <a href="{{ report.map_link }}" target="_blank">Open Animal Location</a>
-                </p>
+            <p class="mb-1">
+                <strong>Provided Map Link:</strong>
+                <a href="{{ report.map_link }}" target="_blank">Open Provided Animal Location</a>
+            </p>
             {% endif %}
 
             <p class="mb-1">

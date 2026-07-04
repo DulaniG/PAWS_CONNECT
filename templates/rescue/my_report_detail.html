@@ -50,12 +50,19 @@
                 <p class="mb-1">
                     <strong>Coordinates:</strong> {{ report.latitude }}, {{ report.longitude }}
                 </p>
+
+                <p class="mb-1">
+                    <strong>Captured Location:</strong>
+                    <a href="https://www.google.com/maps?q={{ report.latitude }},{{ report.longitude }}" target="_blank">
+                        Open Animal Location in Map
+                    </a>
+                </p>
             {% endif %}
 
             {% if report.map_link %}
                 <p class="mb-1">
-                    <strong>Map Link:</strong>
-                    <a href="{{ report.map_link }}" target="_blank">Open Animal Location</a>
+                    <strong>Provided Map Link:</strong>
+                    <a href="{{ report.map_link }}" target="_blank">Open Provided Animal Location</a>
                 </p>
             {% endif %}
 
@@ -64,7 +71,18 @@
             <h6 class="paws-heading">Report Progress</h6>
 
             <p class="mb-1">
-                <strong>Report Status:</strong> {{ report.get_report_status_display }}
+                <strong>Case Progress:</strong>
+                {% if report.report_status == 'SUBMITTED' %}
+                    Submitted for Shelter Review
+                {% elif report.report_status == 'REVIEWED' %}
+                    Reviewed by Shelter
+                {% elif report.report_status == 'ASSIGNED' %}
+                    Rescuer Assigned
+                {% elif report.report_status == 'CLOSED' %}
+                    Rescue Done
+                {% else %}
+                    {{ report.get_report_status_display }}
+                {% endif %}
             </p>
 
             <p class="mb-1">

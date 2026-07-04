@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+
+{% block title %}Assign Rescuer | PAWS CONNECT{% endblock %}
+
+{% block content %}
+
+<div class="paws-section-card mb-4">
+    <h2 class="paws-heading">Assign Linked Rescuer</h2>
+    <p class="paws-subtitle mb-0">
+        Assign this reviewed rescue case to an approved rescuer linked to your shelter.
+    </p>
+</div>
+
+<div class="row g-4">
+
+    <div class="col-lg-6">
+        <div class="paws-card h-100">
+
+            <h5 class="paws-heading mb-3">Rescue Case Summary</h5>
+
+            {% if report.image %}
+                <img src="{{ report.image.url }}" class="report-card-image" alt="Reported animal image">
+            {% else %}
+                <div class="report-card-placeholder">
+                    No image provided
+                </div>
+            {% endif %}
+
+            <p class="mb-1">
+                <strong>Animal Type:</strong>
+                {{ report.get_animal_type_display }}
+                {% if report.other_animal_type %}
+                    - {{ report.other_animal_type }}
+                {% endif %}
+            </p>
+
+            <p class="mb-1">
+                <strong>Condition:</strong>
+                {{ report.get_condition_display }}
+            </p>
+
+            <p class="mb-1">
+                <strong>Final Priority:</strong>
+
+                {% if report.priority == 'HIGH' %}
+                    <span class="badge bg-danger">High</span>
+                {% elif report.priority == 'MEDIUM' %}
+                    <span class="badge bg-warning text-dark">Medium</span>
+                {% elif report.priority == 'LOW' %}
+                    <span class="badge bg-success">Low</span>
+                {% else %}
+                    <span class="text-muted">Not set</span>
+                {% endif %}
+            </p>
+
+            <p class="mb-1">
+                <strong>Verification Status:</strong>
+                {{ report.get_verification_status_display }}
+            </p>
+
+            <p class="mb-1">
+                <strong>Current Status:</strong>
+                {{ report.get_report_status_display }}
+            </p>
+
+            <p class="mb-1">
+                <strong>Current Rescue Status:</strong>
+                {{ report.get_current_rescue_status_display }}
+            </p>
+
+            <p class="mb-1">
+                <strong>Pickup Location:</strong>
+                {{ report.location_description|default:"Not provided" }}
+            </p>
+
+            {% if report.map_link %}
+                <p class="mb-1">
+                    <strong>Animal Location Map:</strong>
+                    <a href="{{ report.map_link }}" target="_blank">Open Animal Location</a>
+                </p>
+            {% endif %}
+
+            <p class="mb-1">
+                <strong>Reporter:</strong>
+                {{ report.reporter.full_name|default:report.reporter.username }}
+            </p>
+
+            <p class="mb-0">
+                <strong>Reporter Contact:</strong>
+                {% if report.reporter_contact_phone %}
+                    {{ report.reporter_contact_phone }}
+                {% else %}
+                    Not provided
+                {% endif %}
+            </p>
+
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="paws-card h-100">
+
+            <h5 class="paws-heading mb-3">Assignment Form</h5>
+
+            <div class="alert alert-info">
+                Only approved rescuers linked to this shelter are shown. The rescuer will receive a system notification after assignment.
+            </div>
+
+            <form method="POST" novalidate>
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <div class="mb-3">
+                    <label class="form-label">Linked Approved Rescuer</label>
+                    {{ form.assigned_rescuer }}
+
+                    {% for error in form.assigned_rescuer.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+
+                    <div class="form-text">
+                        Select one approved rescuer linked to your shelter.
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Rescue and Handover Instructions</label>
+                    {{ form.assignment_notes }}
+
+                    {% for error in form.assignment_notes.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+
+                    <div class="form-text">
+                        Include pickup details, safety notes, and shelter handover instructions.
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-paws w-100">
+                    Assign Rescuer
+                </button>
+            </form>
+
+            <a href="{% url 'shelter_report_detail' report.id %}" class="btn btn-outline-paws w-100 mt-3">
+                Back to Report Detail
+            </a>
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
