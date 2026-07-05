@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Home | PAWS CONNECT{% endblock %}
 
@@ -14,15 +15,19 @@
         </h4>
 
         <p class="lead paws-subtitle mb-4">
-            Report. Rescue. Care. Adopt.
+            Report • Rescue • Care • Adopt
         </p>
 
         <p class="mb-4">
             PAWS CONNECT is a mobile-friendly web platform that helps the public,
-            rescuers, shelters, and administrators coordinate street animal rescue,
-            treatment tracking, and adoption activities in Sri Lanka.
+            rescuers, and shelters coordinate street animal reporting, rescue,
+            treatment tracking, and adoption in Sri Lanka.
         </p>
-
+        
+        <div class="home-hero-image-wrapper mb-4">
+            <img src="{% static 'images/home_kittens.png' %}" class="home-hero-image" alt="Rescued kittens">
+        </div>
+        
         <div class="d-flex flex-column flex-md-row justify-content-center gap-3">
             <a href="/accounts/register/" class="btn btn-paws">
                 Get Started
@@ -93,31 +98,24 @@
 
         <div class="row g-4">
 
-            <div class="col-md-3 text-center">
+            <div class="col-md-4 text-center">
                 <h5>👤 Public User</h5>
                 <p class="paws-subtitle">
                     Reports animals and submits adoption requests.
                 </p>
             </div>
 
-            <div class="col-md-3 text-center">
+            <div class="col-md-4 text-center">
                 <h5>🚨 Rescuer</h5>
                 <p class="paws-subtitle">
                     Responds to assigned rescue cases and updates rescue status.
                 </p>
             </div>
 
-            <div class="col-md-3 text-center">
+            <div class="col-md-4 text-center">
                 <h5>🏠 Shelter</h5>
                 <p class="paws-subtitle">
                     Reviews reports, manages animals, and processes adoptions.
-                </p>
-            </div>
-
-            <div class="col-md-3 text-center">
-                <h5>🔐 Administrator</h5>
-                <p class="paws-subtitle">
-                    Manages users and verifies rescuer and shelter accounts.
                 </p>
             </div>
 

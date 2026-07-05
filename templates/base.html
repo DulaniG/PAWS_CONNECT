@@ -124,11 +124,39 @@
     </main>
 
     <!-- Footer -->
-    <footer class="paws-footer text-center">
+    <footer class="paws-footer">
         <div class="container">
-            <p class="mb-1 fw-semibold">PAWS CONNECT</p>
-            <p class="mb-1">Street Animal Rescue and Adoption System in Sri Lanka</p>
-            <small>Report. Rescue. Care. Adopt.</small>
+            <div class="footer-content">
+                
+                <div class="footer-image-box">
+                    <img src="{% static 'images/footer_left_animals.png' %}" class="footer-animal-image" alt="Animal illustration">
+                </div>
+                
+                <div class="footer-text text-center">
+                    <p class="mb-1 fw-semibold">PAWS CONNECT</p>
+                    <p class="mb-1">Street Animal Rescue and Adoption System in Sri Lanka</p>
+                    
+                    <p class="mb-1 footer-slogan">
+                        Report <span class="footer-paw">•</span>
+                        Rescue <span class="footer-paw">•</span>
+                        Care <span class="footer-paw">•</span>
+                        Adopt
+                    </p>
+                    
+                    <small class="d-block">
+                        Developed as a final year software engineering dissertation project.
+                    </small>
+                    
+                    <small class="d-block">
+                        © 2026 PAWS CONNECT. All rights reserved.
+                    </small>
+                </div>
+                
+                <div class="footer-image-box">
+                    <img src="{% static 'images/footer_right_animals.png' %}" class="footer-animal-image" alt="Animal illustration">
+                </div>
+            
+            </div>
         </div>
     </footer>
 
