@@ -7,7 +7,7 @@
 <div class="paws-section-card mb-4">
     <h2 class="paws-heading">Report a Street Animal</h2>
     <p class="paws-subtitle mb-0">
-        Submit animal condition, photo, contact, and location details so shelters can verify and review the case.
+        Submit animal condition, photo, location, and contact details so shelters can verify and review the case.
     </p>
 </div>
 
@@ -24,18 +24,7 @@
                     </div>
                 {% endif %}
 
-                <div class="mb-3">
-                    <label class="form-label">Reporter Contact Phone</label>
-                    {{ form.reporter_contact_phone }}
-                    <div class="form-text">
-                        Required. Shelters use this only to verify whether the animal is still at the location before assigning a rescuer.
-                    </div>
-                    {% for error in form.reporter_contact_phone.errors %}
-                        <div class="text-danger small">{{ error }}</div>
-                    {% endfor %}
-                </div>
-
-                <hr>
+                <h5 class="paws-heading mb-3">Animal Details</h5>
 
                 <div class="mb-3">
                     <label class="form-label">Animal Type</label>
@@ -132,6 +121,21 @@
                         Optional. You can paste a Google Maps or Apple Maps link.
                     </div>
                     {% for error in form.map_link.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <hr>
+
+                <h5 class="paws-heading mb-3">Reporter Contact Details</h5>
+
+                <div class="mb-4">
+                    <label class="form-label">Reporter Contact Phone</label>
+                    {{ form.reporter_contact_phone }}
+                    <div class="form-text">
+                        Required. Shelters use this only to verify whether the animal is still at the location before assigning a rescuer.
+                    </div>
+                    {% for error in form.reporter_contact_phone.errors %}
                         <div class="text-danger small">{{ error }}</div>
                     {% endfor %}
                 </div>

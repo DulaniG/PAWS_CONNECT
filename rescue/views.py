@@ -75,7 +75,7 @@ def my_report_detail_view(request, report_id):
         reporter=request.user
     )
 
-    rescue_updates = report.rescue_updates.all().order_by('-created_at')
+    rescue_updates = report.rescue_updates.all().order_by('created_at')
 
     animal = None
     try:
@@ -245,7 +245,7 @@ def shelter_report_detail_view(request, report_id):
 
     report = get_object_or_404(Report, id=report_id)
 
-    rescue_updates = report.rescue_updates.all().order_by('-created_at')
+    rescue_updates = report.rescue_updates.all().order_by('created_at')
 
     animal = None
     try:
@@ -516,7 +516,7 @@ def rescuer_case_detail_view(request, report_id):
     else:
         form = RescueUpdateForm()
 
-    rescue_updates = report.rescue_updates.all().order_by('-created_at')
+    rescue_updates = report.rescue_updates.all().order_by('created_at')
 
     return render(request, 'rescue/rescuer_case_detail.html', {
         'report': report,
