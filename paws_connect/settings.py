@@ -38,6 +38,9 @@ INSTALLED_APPS = [
     'rescue',
     'accounts',
 
+    'rest_framework',
+    'drf_yasg',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -144,3 +147,9 @@ DEFAULT_FROM_EMAIL = 'PAWS CONNECT <noreply@pawsconnect.local>'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ],
+}

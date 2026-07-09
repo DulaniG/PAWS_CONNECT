@@ -1,8 +1,19 @@
 from django.urls import path
 from . import views
+from . import api_views
 
 
 urlpatterns = [
+    # API endpoints
+    path('api/reports/', api_views.ReportListAPIView.as_view(), name='api_report_list'),
+    path('api/reports/<int:pk>/', api_views.ReportDetailAPIView.as_view(), name='api_report_detail'),
+    path('api/rescue-updates/', api_views.RescueUpdateListAPIView.as_view(), name='api_rescue_update_list'),
+    path('api/animals/', api_views.AnimalListAPIView.as_view(), name='api_animal_list'),
+    path('api/animals/<int:pk>/', api_views.AnimalDetailAPIView.as_view(), name='api_animal_detail'),
+    path('api/adoption-requests/', api_views.AdoptionRequestListAPIView.as_view(), name='api_adoption_request_list'),
+    path('api/adoption-requests/<int:pk>/', api_views.AdoptionRequestDetailAPIView.as_view(), name='api_adoption_request_detail'),
+
+    # Web pages
     path('report/', views.report_animal_view, name='report_animal'),
     path('my-reports/', views.my_reports_view, name='my_reports'),
     path('my-reports/<int:report_id>/', views.my_report_detail_view, name='my_report_detail'),
