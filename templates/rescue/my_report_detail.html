@@ -14,6 +14,10 @@
 <div class="paws-card mb-4">
     <h5 class="paws-heading mb-3">1. Submitted Animal Report Details</h5>
 
+    <p class="mb-2">
+        <strong>Report ID:</strong> #{{ report.id }}
+    </p>
+
     {% if report.image %}
         <img src="{{ report.image.url }}" class="report-card-image" alt="Reported animal image">
     {% else %}
@@ -260,6 +264,53 @@
         </p>
     {% endif %}
 </div>
+
+{% if report.assigned_shelter or report.assigned_rescuer %}
+    <div class="paws-card mb-4">
+        <h5 class="paws-heading mb-3">Account Safety</h5>
+
+        <p class="text-muted mb-3">
+            If any account involved in this rescue case seems suspicious or unsafe,
+            you can report it to the administrator for review.
+        </p>
+
+        {% if report.assigned_shelter %}
+            <div class="border rounded p-3 mb-3">
+                <h6 class="fw-bold mb-2">Assigned Shelter Account</h6>
+
+                <p class="mb-1">
+                    <strong>Name:</strong>
+                    {{ report.assigned_shelter.full_name|default:report.assigned_shelter.username }}
+                </p>
+
+                <p class="mb-1">
+                    <strong>Role:</strong>
+                    {{ report.assigned_shelter.get_role_display }}
+                </p>
+
+                {% include 'accounts/includes/report_user_button.html' with reported_user=report.assigned_shelter %}
+            </div>
+        {% endif %}
+
+        {% if report.assigned_rescuer %}
+            <div class="border rounded p-3">
+                <h6 class="fw-bold mb-2">Assigned Rescuer Account</h6>
+
+                <p class="mb-1">
+                    <strong>Name:</strong>
+                    {{ report.assigned_rescuer.full_name|default:report.assigned_rescuer.username }}
+                </p>
+
+                <p class="mb-1">
+                    <strong>Role:</strong>
+                    {{ report.assigned_rescuer.get_role_display }}
+                </p>
+
+                {% include 'accounts/includes/report_user_button.html' with reported_user=report.assigned_rescuer %}
+            </div>
+        {% endif %}
+    </div>
+{% endif %}
 
 <a href="/rescue/my-reports/" class="btn btn-outline-paws w-100 mb-4">
     Back to My Reports

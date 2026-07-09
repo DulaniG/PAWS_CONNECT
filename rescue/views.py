@@ -338,6 +338,26 @@ def assign_rescuer_view(request, report_id):
 
     report = get_object_or_404(Report, id=report_id)
 
+    if report.current_rescue_status in ['HANDED_OVER_TO_SHELTER', 'UNABLE_TO_LOCATE']:
+        messages.warning(
+            request,
+            'This case can no longer be reassigned because the rescue case is no longer active.'
+        )
+        return redirect('shelter_report_detail', report_id=report.id)
+
+    animal = None
+    try:
+        animal = report.animal
+    except Animal.DoesNotExist:
+        animal = None
+
+    if animal and animal.treatment_status in ['ADOPTED', 'PASSED_AWAY']:
+        messages.warning(
+            request,
+            'This case can no longer be reassigned because the animal case is already completed.'
+        )
+        return redirect('shelter_report_detail', report_id=report.id)
+
     if request.method == 'POST':
         form = RescueAssignmentForm(
             request.POST,
@@ -348,6 +368,17 @@ def assign_rescuer_view(request, report_id):
             assigned_rescuer = form.cleaned_data.get('assigned_rescuer')
             assignment_notes = form.cleaned_data.get('assignment_notes')
 
+            previous_assigned_rescuer = report.assigned_rescuer
+
+            if previous_assigned_rescuer == assigned_rescuer:
+                messages.info(
+                    request,
+                    'This case is already assigned to this rescuer.'
+                )
+                return redirect('shelter_report_detail', report_id=report.id)
+
+            is_reassignment = previous_assigned_rescuer is not None
+
             report.assigned_shelter = request.user
             report.assigned_rescuer = assigned_rescuer
             report.assignment_notes = assignment_notes
@@ -356,33 +387,73 @@ def assign_rescuer_view(request, report_id):
             report.assigned_at = timezone.now()
             report.save()
 
-            create_notification(
-                user=assigned_rescuer,
-                notification_type='CASE_ASSIGNED',
-                title='New Rescue Case Assigned',
-                message=(
-                    f'A new rescue case has been assigned to you by '
-                    f'{request.user.full_name or request.user.username}. '
-                    f'Priority: {report.get_priority_display()}.'
-                ),
-                target_url=reverse('rescuer_case_detail', args=[report.id])
-            )
+            if is_reassignment:
+                create_notification(
+                    user=previous_assigned_rescuer,
+                    notification_type='CASE_ASSIGNED',
+                    title='Rescue Case Reassigned',
+                    message=(
+                        'This rescue case has been reassigned and removed from your active cases.'
+                    ),
+                    target_url=reverse('rescuer_assigned_cases')
+                )
 
-            create_notification(
-                user=report.reporter,
-                notification_type='CASE_ASSIGNED',
-                title='Rescue Case Assigned',
-                message=(
-                    'Your animal report has been assigned to a rescuer. '
-                    f'Current rescue status: {report.get_current_rescue_status_display()}.'
-                ),
-                target_url=reverse('my_report_detail', args=[report.id])
-            )
+                create_notification(
+                    user=assigned_rescuer,
+                    notification_type='CASE_ASSIGNED',
+                    title='Rescue Case Assigned',
+                    message=(
+                        f'A rescue case has been assigned to you by '
+                        f'{request.user.full_name or request.user.username}. '
+                        f'Priority: {report.get_priority_display()}.'
+                    ),
+                    target_url=reverse('rescuer_case_detail', args=[report.id])
+                )
 
-            messages.success(
-                request,
-                f'Rescuer {assigned_rescuer.full_name or assigned_rescuer.username} assigned successfully.'
-            )
+                create_notification(
+                    user=report.reporter,
+                    notification_type='CASE_ASSIGNED',
+                    title='Rescue Case Reassigned',
+                    message=(
+                        'Your animal rescue case has been reassigned to another rescuer. '
+                        f'Current rescue status: {report.get_current_rescue_status_display()}.'
+                    ),
+                    target_url=reverse('my_report_detail', args=[report.id])
+                )
+
+                messages.success(
+                    request,
+                    f'Rescuer changed to {assigned_rescuer.full_name or assigned_rescuer.username} successfully.'
+                )
+
+            else:
+                create_notification(
+                    user=assigned_rescuer,
+                    notification_type='CASE_ASSIGNED',
+                    title='New Rescue Case Assigned',
+                    message=(
+                        f'A new rescue case has been assigned to you by '
+                        f'{request.user.full_name or request.user.username}. '
+                        f'Priority: {report.get_priority_display()}.'
+                    ),
+                    target_url=reverse('rescuer_case_detail', args=[report.id])
+                )
+
+                create_notification(
+                    user=report.reporter,
+                    notification_type='CASE_ASSIGNED',
+                    title='Rescue Case Assigned',
+                    message=(
+                        'Your animal report has been assigned to a rescuer. '
+                        f'Current rescue status: {report.get_current_rescue_status_display()}.'
+                    ),
+                    target_url=reverse('my_report_detail', args=[report.id])
+                )
+
+                messages.success(
+                    request,
+                    f'Rescuer {assigned_rescuer.full_name or assigned_rescuer.username} assigned successfully.'
+                )
 
             return redirect('shelter_report_detail', report_id=report.id)
 
@@ -556,14 +627,18 @@ def animal_treatment_detail_view(request, report_id):
         current_rescue_status='HANDED_OVER_TO_SHELTER'
     )
 
+    rescue_updates = report.rescue_updates.all().order_by('created_at')
+
     try:
         animal = report.animal
+        created = False
     except Animal.DoesNotExist:
         animal = Animal(
             report=report,
             shelter=request.user,
             assigned_rescuer=report.assigned_rescuer
         )
+        created = True
 
     if request.method == 'POST':
         form = AnimalTreatmentForm(
@@ -603,6 +678,8 @@ def animal_treatment_detail_view(request, report_id):
         'report': report,
         'animal': animal,
         'form': form,
+        'rescue_updates': rescue_updates,
+        'created': created,
     })
 
 

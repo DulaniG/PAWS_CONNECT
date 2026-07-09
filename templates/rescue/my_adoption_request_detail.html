@@ -11,291 +11,277 @@
     </p>
 </div>
 
-<div class="row g-4">
+<div class="d-grid gap-4">
 
-    <div class="col-lg-7">
+    <div class="paws-card">
+        <h5 class="paws-heading mb-3">Animal Details</h5>
 
-        <div class="paws-card mb-4">
-            <h5 class="paws-heading mb-3">Animal Details</h5>
+        {% if adoption_request.animal.animal_image %}
+            <img src="{{ adoption_request.animal.animal_image.url }}" class="report-card-image" alt="Animal image">
+        {% elif adoption_request.animal.report.image %}
+            <img src="{{ adoption_request.animal.report.image.url }}" class="report-card-image" alt="Reported animal image">
+        {% else %}
+            <div class="report-card-placeholder">
+                No image provided
+            </div>
+        {% endif %}
 
-            {% if adoption_request.animal.animal_image %}
-                <img src="{{ adoption_request.animal.animal_image.url }}" class="report-card-image" alt="Animal image">
-            {% elif adoption_request.animal.report.image %}
-                <img src="{{ adoption_request.animal.report.image.url }}" class="report-card-image" alt="Reported animal image">
+        <p class="mb-1">
+            <strong>Name:</strong>
+            {% if adoption_request.animal.name %}
+                {{ adoption_request.animal.name }}
             {% else %}
-                <div class="report-card-placeholder">
-                    No image provided
-                </div>
+                Not named yet
             {% endif %}
+        </p>
 
+        <p class="mb-1">
+            <strong>Animal Type:</strong>
+            {{ adoption_request.animal.report.get_animal_type_display }}
+            {% if adoption_request.animal.report.other_animal_type %}
+                - {{ adoption_request.animal.report.other_animal_type }}
+            {% endif %}
+        </p>
+
+        <p class="mb-1">
+            <strong>Age:</strong>
+            {% if adoption_request.animal.age %}
+                {{ adoption_request.animal.age }}
+            {% else %}
+                Not specified
+            {% endif %}
+        </p>
+
+        <p class="mb-1">
+            <strong>Gender:</strong>
+            {{ adoption_request.animal.get_gender_display }}
+        </p>
+
+        <p class="mb-1">
+            <strong>Animal Status:</strong>
+            {% if adoption_request.animal.treatment_status == 'ADOPTED' %}
+                <span class="badge bg-primary">Adopted</span>
+            {% elif adoption_request.animal.treatment_status == 'READY_FOR_ADOPTION' %}
+                <span class="badge bg-success">Ready for Adoption</span>
+            {% elif adoption_request.animal.treatment_status == 'PASSED_AWAY' %}
+                <span class="badge bg-secondary">Passed Away</span>
+            {% elif adoption_request.animal.treatment_status == 'RECOVERING' %}
+                <span class="badge bg-primary">Recovering</span>
+            {% elif adoption_request.animal.treatment_status == 'UNDER_TREATMENT' %}
+                <span class="badge bg-info text-dark">Under Treatment</span>
+            {% else %}
+                <span class="badge bg-secondary">
+                    {{ adoption_request.animal.get_treatment_status_display }}
+                </span>
+            {% endif %}
+        </p>
+
+        <p class="mb-1">
+            <strong>Health Status:</strong>
+            {% if adoption_request.animal.health_status %}
+                {{ adoption_request.animal.health_status }}
+            {% else %}
+                Not provided
+            {% endif %}
+        </p>
+
+        <p class="mb-1">
+            <strong>Treatment Notes:</strong>
+            {% if adoption_request.animal.treatment_notes %}
+                {{ adoption_request.animal.treatment_notes }}
+            {% else %}
+                Not provided
+            {% endif %}
+        </p>
+
+        <p class="mb-1">
+            <strong>Vet / Clinic Information:</strong>
+            {% if adoption_request.animal.vet_info %}
+                {{ adoption_request.animal.vet_info }}
+            {% else %}
+                Not provided
+            {% endif %}
+        </p>
+
+        <p class="mb-0">
+            <strong>Adoption Ready Date:</strong>
+            {% if adoption_request.animal.adoption_ready_date %}
+                {{ adoption_request.animal.adoption_ready_date|date:"d M Y" }}
+            {% else %}
+                Not set
+            {% endif %}
+        </p>
+    </div>
+
+    <div class="paws-card">
+        <h5 class="paws-heading mb-3">Your Adoption Request</h5>
+
+        <p class="mb-1">
+            <strong>Request Status:</strong>
+            {% if adoption_request.status == 'PENDING' %}
+                <span class="badge bg-warning text-dark">Pending</span>
+            {% elif adoption_request.status == 'APPROVED' %}
+                <span class="badge bg-success">Approved</span>
+            {% elif adoption_request.status == 'REJECTED' %}
+                <span class="badge bg-danger">Rejected</span>
+            {% endif %}
+        </p>
+
+        <p class="mb-1">
+            <strong>Submitted At:</strong>
+            {{ adoption_request.created_at|date:"d M Y, h:i A" }}
+        </p>
+
+        <p class="mb-1">
+            <strong>Your Message:</strong>
+        </p>
+
+        <p class="mb-3">
+            {{ adoption_request.message }}
+        </p>
+
+        {% if adoption_request.processed_at %}
             <p class="mb-1">
-                <strong>Name:</strong>
-                {% if adoption_request.animal.name %}
-                    {{ adoption_request.animal.name }}
-                {% else %}
-                    Not named yet
-                {% endif %}
+                <strong>Processed At:</strong>
+                {{ adoption_request.processed_at|date:"d M Y, h:i A" }}
             </p>
+        {% endif %}
 
+        {% if adoption_request.processed_by %}
             <p class="mb-1">
-                <strong>Animal Type:</strong>
-                {{ adoption_request.animal.report.get_animal_type_display }}
-                {% if adoption_request.animal.report.other_animal_type %}
-                    - {{ adoption_request.animal.report.other_animal_type }}
-                {% endif %}
+                <strong>Processed By:</strong>
+                {{ adoption_request.processed_by.full_name|default:adoption_request.processed_by.username }}
             </p>
+        {% endif %}
 
+        {% if adoption_request.decision_notes %}
             <p class="mb-1">
-                <strong>Age:</strong>
-                {% if adoption_request.animal.age %}
-                    {{ adoption_request.animal.age }}
-                {% else %}
-                    Not specified
-                {% endif %}
-            </p>
-
-            <p class="mb-1">
-                <strong>Gender:</strong>
-                {{ adoption_request.animal.get_gender_display }}
-            </p>
-
-            <p class="mb-1">
-                <strong>Animal Status:</strong>
-                {% if adoption_request.animal.treatment_status == 'ADOPTED' %}
-                    <span class="badge bg-primary">Adopted</span>
-                {% elif adoption_request.animal.treatment_status == 'READY_FOR_ADOPTION' %}
-                    <span class="badge bg-success">Ready for Adoption</span>
-                {% elif adoption_request.animal.treatment_status == 'PASSED_AWAY' %}
-                    <span class="badge bg-secondary">Passed Away</span>
-                {% elif adoption_request.animal.treatment_status == 'RECOVERING' %}
-                    <span class="badge bg-primary">Recovering</span>
-                {% elif adoption_request.animal.treatment_status == 'UNDER_TREATMENT' %}
-                    <span class="badge bg-info text-dark">Under Treatment</span>
-                {% else %}
-                    <span class="badge bg-secondary">
-                        {{ adoption_request.animal.get_treatment_status_display }}
-                    </span>
-                {% endif %}
-            </p>
-
-            <p class="mb-1">
-                <strong>Health Status:</strong>
-                {% if adoption_request.animal.health_status %}
-                    {{ adoption_request.animal.health_status }}
-                {% else %}
-                    Not provided
-                {% endif %}
-            </p>
-
-            <p class="mb-1">
-                <strong>Treatment Notes:</strong>
-                {% if adoption_request.animal.treatment_notes %}
-                    {{ adoption_request.animal.treatment_notes }}
-                {% else %}
-                    Not provided
-                {% endif %}
-            </p>
-
-            <p class="mb-1">
-                <strong>Vet / Clinic Information:</strong>
-                {% if adoption_request.animal.vet_info %}
-                    {{ adoption_request.animal.vet_info }}
-                {% else %}
-                    Not provided
-                {% endif %}
+                <strong>Decision Notes:</strong>
             </p>
 
             <p class="mb-0">
-                <strong>Adoption Ready Date:</strong>
-                {% if adoption_request.animal.adoption_ready_date %}
-                    {{ adoption_request.animal.adoption_ready_date|date:"d M Y" }}
-                {% else %}
-                    Not set
-                {% endif %}
+                {{ adoption_request.decision_notes }}
             </p>
-        </div>
-
-        <div class="paws-card">
-            <h5 class="paws-heading mb-3">Your Adoption Request</h5>
-
-            <p class="mb-1">
-                <strong>Request Status:</strong>
-                {% if adoption_request.status == 'PENDING' %}
-                    <span class="badge bg-warning text-dark">Pending</span>
-                {% elif adoption_request.status == 'APPROVED' %}
-                    <span class="badge bg-success">Approved</span>
-                {% elif adoption_request.status == 'REJECTED' %}
-                    <span class="badge bg-danger">Rejected</span>
-                {% endif %}
-            </p>
-
-            <p class="mb-1">
-                <strong>Submitted At:</strong>
-                {{ adoption_request.created_at|date:"d M Y, h:i A" }}
-            </p>
-
-            <p class="mb-1">
-                <strong>Your Message:</strong>
-            </p>
-
-            <p class="mb-3">
-                {{ adoption_request.message }}
-            </p>
-
-            {% if adoption_request.processed_at %}
-                <p class="mb-1">
-                    <strong>Processed At:</strong>
-                    {{ adoption_request.processed_at|date:"d M Y, h:i A" }}
-                </p>
-            {% endif %}
-
-            {% if adoption_request.processed_by %}
-                <p class="mb-1">
-                    <strong>Processed By:</strong>
-                    {{ adoption_request.processed_by.full_name|default:adoption_request.processed_by.username }}
-                </p>
-            {% endif %}
-
-            {% if adoption_request.decision_notes %}
-                <p class="mb-1">
-                    <strong>Decision Notes:</strong>
-                </p>
-
-                <p class="mb-0">
-                    {{ adoption_request.decision_notes }}
-                </p>
-            {% endif %}
-        </div>
-
+        {% endif %}
     </div>
 
-    <div class="col-lg-5">
+    <div class="paws-card">
+        <h5 class="paws-heading mb-3">Shelter Information</h5>
 
-        <div class="paws-card">
-            <h5 class="paws-heading mb-3">Shelter Information</h5>
-
-            <p class="mb-1">
-                <strong>Shelter:</strong>
-                {% if adoption_request.animal.shelter %}
-                    {{ adoption_request.animal.shelter.full_name|default:adoption_request.animal.shelter.username }}
-                {% else %}
-                    Not specified
-                {% endif %}
-            </p>
-
-            <p class="mb-1">
-                <strong>Service Area:</strong>
-                {% if adoption_request.animal.shelter and adoption_request.animal.shelter.service_area %}
-                    {{ adoption_request.animal.shelter.service_area }}
-                {% else %}
-                    Not provided
-                {% endif %}
-            </p>
-
-            <p class="mb-1">
-                <strong>Shelter Email:</strong>
-                {% if adoption_request.animal.shelter and adoption_request.animal.shelter.email %}
-                    {{ adoption_request.animal.shelter.email }}
-                {% else %}
-                    Not provided
-                {% endif %}
-            </p>
-
-            {% if adoption_request.status == 'APPROVED' %}
-
-                <hr>
-
-                <h6 class="paws-heading mb-2">Adoption Handover Details</h6>
-
-                <div class="alert alert-success">
-                    Your adoption request has been approved. Please contact the shelter to arrange the final animal handover.
-                </div>
-
-                <p class="mb-1">
-                    <strong>Shelter Contact Phone:</strong>
-                    {% if adoption_request.animal.shelter and adoption_request.animal.shelter.phone_number %}
-                        {{ adoption_request.animal.shelter.phone_number }}
-                    {% else %}
-                        Not provided
-                    {% endif %}
-                </p>
-
-                <p class="mb-1">
-                    <strong>Shelter Address / Handover Location:</strong>
-                    {% if adoption_request.animal.shelter and adoption_request.animal.shelter.shelter_address %}
-                        {{ adoption_request.animal.shelter.shelter_address }}
-                    {% else %}
-                        Not provided
-                    {% endif %}
-                </p>
-
-                {% if adoption_request.animal.shelter and adoption_request.animal.shelter.shelter_map_link %}
-                    <p class="mb-0">
-                        <strong>Shelter Map Link:</strong>
-                        <a href="{{ adoption_request.animal.shelter.shelter_map_link }}" target="_blank">
-                            Open Shelter Location
-                        </a>
-                    </p>
-                {% endif %}
-
+        <p class="mb-1">
+            <strong>Shelter:</strong>
+            {% if adoption_request.animal.shelter %}
+                {{ adoption_request.animal.shelter.full_name|default:adoption_request.animal.shelter.username }}
             {% else %}
+                Not specified
+            {% endif %}
+        </p>
 
-                <hr>
+        <p class="mb-1">
+            <strong>Service Area:</strong>
+            {% if adoption_request.animal.shelter and adoption_request.animal.shelter.service_area %}
+                {{ adoption_request.animal.shelter.service_area }}
+            {% else %}
+                Not provided
+            {% endif %}
+        </p>
 
-                <p class="paws-subtitle mb-0">
-                    Shelter contact and handover details will be shown after the adoption request is approved.
+        <p class="mb-1">
+            <strong>Shelter Email:</strong>
+            {% if adoption_request.animal.shelter and adoption_request.animal.shelter.email %}
+                {{ adoption_request.animal.shelter.email }}
+            {% else %}
+                Not provided
+            {% endif %}
+        </p>
+
+        {% if adoption_request.status == 'APPROVED' %}
+
+            <hr>
+
+            <h6 class="paws-heading mb-2">Adoption Handover Details</h6>
+
+            <div class="alert alert-success">
+                Your adoption request has been approved. Please contact the shelter to arrange the final animal handover.
+            </div>
+
+            <p class="mb-1">
+                <strong>Shelter Contact Phone:</strong>
+                {% if adoption_request.animal.shelter and adoption_request.animal.shelter.phone_number %}
+                    {{ adoption_request.animal.shelter.phone_number }}
+                {% else %}
+                    Not provided
+                {% endif %}
+            </p>
+
+            <p class="mb-1">
+                <strong>Shelter Address / Handover Location:</strong>
+                {% if adoption_request.animal.shelter and adoption_request.animal.shelter.shelter_address %}
+                    {{ adoption_request.animal.shelter.shelter_address }}
+                {% else %}
+                    Not provided
+                {% endif %}
+            </p>
+
+            {% if adoption_request.animal.shelter and adoption_request.animal.shelter.shelter_map_link %}
+                <p class="mb-0">
+                    <strong>Shelter Map Link:</strong>
+                    <a href="{{ adoption_request.animal.shelter.shelter_map_link }}" target="_blank">
+                        Open Shelter Location
+                    </a>
+                </p>
+            {% endif %}
+
+        {% else %}
+
+            <hr>
+
+            <p class="paws-subtitle mb-0">
+                Shelter contact and handover details will be shown after the adoption request is approved.
+            </p>
+
+        {% endif %}
+    </div>
+
+    {% if adoption_request.status == 'APPROVED' and adoption_request.animal.shelter %}
+        <div class="paws-card">
+            <h5 class="paws-heading mb-3">Account Safety</h5>
+
+            <p class="paws-subtitle mb-3">
+                If the shelter account involved in this adoption request seems suspicious or unsafe, you can report it to the administrator.
+            </p>
+
+            <div class="border rounded p-3">
+                <h6 class="fw-bold mb-2">Shelter Account</h6>
+
+                <p class="mb-1">
+                    <strong>Name:</strong>
+                    {{ adoption_request.animal.shelter.full_name|default:adoption_request.animal.shelter.username }}
                 </p>
 
-            {% endif %}
+                <p class="mb-1">
+                    <strong>Role:</strong>
+                    {{ adoption_request.animal.shelter.get_role_display }}
+                </p>
+
+                <p class="mb-1">
+                    <strong>Service Area:</strong>
+                    {{ adoption_request.animal.shelter.service_area|default:"Not provided" }}
+                </p>
+
+                {% include 'accounts/includes/report_user_button.html' with reported_user=adoption_request.animal.shelter %}
+            </div>
         </div>
+    {% endif %}
 
-        <a href="/rescue/my-adoption-requests/" class="btn btn-outline-paws w-100 mt-3">
-            Back to My Adoption Requests
-        </a>
+    <a href="/rescue/my-adoption-requests/" class="btn btn-outline-paws w-100">
+        Back to My Adoption Requests
+    </a>
 
-        <a href="/rescue/adoption/" class="btn btn-paws w-100 mt-3">
-            Back to Adoption
-        </a>
-
-    </div>
+    <a href="/rescue/adoption/" class="btn btn-paws w-100">
+        Back to Adoption
+    </a>
 
 </div>
-
-{% if adoption_request.status == 'APPROVED' and adoption_request.animal.shelter %}
-    <div class="container mb-4">
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-warning-subtle">
-                <h5 class="mb-0">Account Safety</h5>
-            </div>
-
-            <div class="card-body">
-                <p class="text-muted mb-3">
-                    If the shelter account involved in this adoption request seems suspicious or unsafe, you can report it to the administrator.
-                </p>
-
-                <div class="border rounded p-3">
-                    <h6 class="fw-bold mb-2">Shelter Account</h6>
-
-                    <p class="mb-1">
-                        <strong>Name:</strong>
-                        {{ adoption_request.animal.shelter.full_name|default:adoption_request.animal.shelter.username }}
-                    </p>
-
-                    <p class="mb-1">
-                        <strong>Role:</strong>
-                        {{ adoption_request.animal.shelter.get_role_display }}
-                    </p>
-
-                    <p class="mb-1">
-                        <strong>Service Area:</strong>
-                        {{ adoption_request.animal.shelter.service_area|default:"Not provided" }}
-                    </p>
-
-                    {% include 'accounts/includes/report_user_button.html' with reported_user=adoption_request.animal.shelter %}
-                </div>
-            </div>
-        </div>
-    </div>
-{% endif %}
 
 {% endblock %}

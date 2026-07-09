@@ -56,14 +56,39 @@
 
                                 {% if stage_key == 'reviewed' %}
                                     <span class="badge bg-warning text-dark">{{ stage_badge }}</span>
+
                                 {% elif stage_key == 'assigned' %}
                                     <span class="badge bg-primary">{{ stage_badge }}</span>
+
                                 {% elif stage_key == 'handover' %}
-                                    <span class="badge bg-success">{{ stage_badge }}</span>
+                                    {% if report.animal %}
+                                        {% if report.animal.treatment_status == 'UNDER_TREATMENT' %}
+                                            <span class="badge bg-info text-dark">Under Treatment</span>
+                                        {% elif report.animal.treatment_status == 'RECOVERING' %}
+                                            <span class="badge bg-primary">Recovering</span>
+                                        {% elif report.animal.treatment_status == 'READY_FOR_ADOPTION' %}
+                                            <span class="badge bg-success">Ready for Adoption</span>
+                                        {% elif report.animal.treatment_status == 'ADOPTED' %}
+                                            <span class="badge bg-primary">Adopted</span>
+                                        {% elif report.animal.treatment_status == 'PASSED_AWAY' %}
+                                            <span class="badge bg-dark">Passed Away</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">
+                                                {{ report.animal.get_treatment_status_display }}
+                                            </span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="badge bg-success">Handed Over</span>
+                                    {% endif %}
+
                                 {% else %}
                                     <span class="badge bg-secondary">{{ stage_badge }}</span>
                                 {% endif %}
                             </div>
+
+                            <p class="mb-1">
+                                <strong>Report ID:</strong> #{{ report.id }}
+                            </p>
 
                             <p class="text-muted mb-2">
                                 {{ report.description|truncatewords:20 }}
@@ -110,17 +135,17 @@
                             {% endif %}
 
                             <div class="d-flex flex-wrap gap-2 mt-3">
-                                <a href="{% url 'shelter_report_detail' report.id %}"
-                                   class="btn"
-                                   style="background-color: #b8642f; border-color: #b8642f; color: white; border-radius: 50px; padding: 8px 22px; font-weight: 700;">
-                                    View Case
-                                </a>
-
                                 {% if stage_key == 'handover' %}
                                     <a href="{% url 'animal_treatment_detail' report.id %}"
                                        class="btn"
                                        style="background-color: #b8642f; border-color: #b8642f; color: white; border-radius: 50px; padding: 8px 22px; font-weight: 700;">
                                         Manage Treatment
+                                    </a>
+                                {% else %}
+                                    <a href="{% url 'shelter_report_detail' report.id %}"
+                                       class="btn"
+                                       style="background-color: #b8642f; border-color: #b8642f; color: white; border-radius: 50px; padding: 8px 22px; font-weight: 700;">
+                                        View Case
                                     </a>
                                 {% endif %}
                             </div>

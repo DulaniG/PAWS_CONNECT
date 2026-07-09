@@ -133,13 +133,25 @@ class ReportReviewForm(forms.ModelForm):
             }),
         }
 
-    def clean_priority(self):
-        priority = self.cleaned_data.get('priority')
+    def clean(self):
+        cleaned_data = super().clean()
+
+        priority = cleaned_data.get('priority')
+        verification_status = cleaned_data.get('verification_status')
 
         if not priority:
-            raise forms.ValidationError('Final priority is required when reviewing a report.')
+            self.add_error(
+                'priority',
+                'Final priority is required before the report can move to Reviewed Reports.'
+            )
 
-        return priority
+        if verification_status != 'CONFIRMED_STILL_THERE':
+            self.add_error(
+                'verification_status',
+                'Set verification status to Confirmed Still There before the report can move to Reviewed Reports.'
+            )
+
+        return cleaned_data
 
 
 class RescueAssignmentForm(forms.ModelForm):

@@ -82,6 +82,10 @@
                             </div>
 
                             <p class="mb-1">
+                                <strong>Report ID:</strong> #{{ report.id }}
+                            </p>
+
+                            <p class="mb-1">
                                 <strong>Reporter:</strong>
                                 {{ report.reporter.full_name|default:report.reporter.username }}
                             </p>
