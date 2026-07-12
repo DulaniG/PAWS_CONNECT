@@ -7,12 +7,12 @@
 <div class="paws-section-card mb-4">
     <h2 class="paws-heading">Animal Treatment Detail</h2>
     <p class="paws-subtitle mb-0">
-        Update the animal’s health condition, treatment status, and final outcome.
+        Update the animal’s health condition, care status, and final outcome.
     </p>
 </div>
 
 <div class="paws-card mb-4">
-    <h5 class="paws-heading mb-3">1. Original Rescue Report</h5>
+    <h5 class="paws-heading mb-3">1. Rescue Report</h5>
 
     <p class="mb-2">
         <strong>Report ID:</strong> #{{ report.id }}
@@ -146,9 +146,17 @@
         This record is available because the rescuer has updated the case as Handed Over to Shelter.
     </div>
 
+    <div class="alert alert-secondary">
+        <strong>Treatment Stage Guide:</strong>
+        <br>
+        Keep the animal care status as <strong>Under Treatment</strong> or <strong>Recovering</strong> while care is ongoing.
+        Change the status to <strong>Ready for Adoption</strong> when the animal is healthy enough to appear in the adoption section.
+        Once the animal is <strong>Adopted</strong> through an approved adoption request, or marked as <strong>Passed Away</strong>, the case will appear in <strong>Completed Shelter Cases</strong>.
+    </div>
+
     {% if animal.treatment_status == 'PASSED_AWAY' %}
         <div class="alert alert-dark">
-            This animal has been marked as Passed Away. Keep the treatment notes respectful and factual.
+            This animal has been marked as Passed Away. Keep the care notes respectful and factual.
         </div>
     {% elif animal.treatment_status == 'READY_FOR_ADOPTION' %}
         <div class="alert alert-success">
@@ -191,15 +199,15 @@
         </div>
 
         <div class="mb-3">
-            <label class="form-label">Current Treatment Image</label>
+            <label class="form-label">Current Animal Image</label>
 
             {% if animal.animal_image %}
                 <div class="mb-2">
-                    <img src="{{ animal.animal_image.url }}" class="report-card-image" alt="Animal treatment image">
+                    <img src="{{ animal.animal_image.url }}" class="report-card-image" alt="Current animal image">
                 </div>
 
                 <div class="form-text">
-                    This is the current animal image saved in the treatment record.
+                    This is the current animal image saved for the care and adoption record.
                 </div>
             {% else %}
                 <div class="report-card-placeholder mb-2">
@@ -235,7 +243,7 @@
         </div>
 
         <div class="mb-3">
-            <label class="form-label">Treatment Status</label>
+            <label class="form-label">Animal Care Status</label>
             {{ form.treatment_status }}
             {% for error in form.treatment_status.errors %}
                 <div class="text-danger small">{{ error }}</div>
@@ -246,7 +254,7 @@
         </div>
 
         <div class="mb-3">
-            <label class="form-label">Treatment Notes</label>
+            <label class="form-label">Care Notes</label>
             {{ form.treatment_notes }}
             {% for error in form.treatment_notes.errors %}
                 <div class="text-danger small">{{ error }}</div>
@@ -287,10 +295,66 @@
 </div>
 
 <div class="paws-card mb-4">
-    <h5 class="paws-heading mb-3">4. Current Treatment Summary</h5>
+    <h5 class="paws-heading mb-3">4. Current Animal Care Summary</h5>
 
     <p class="mb-1">
-        <strong>Treatment Status:</strong>
+        <strong>Animal Name:</strong>
+        {% if animal.name %}
+            {{ animal.name }}
+        {% else %}
+            Not recorded
+        {% endif %}
+    </p>
+
+    <p class="mb-1">
+        <strong>Approximate Age:</strong>
+        {% if animal.age %}
+            {{ animal.age }}
+        {% else %}
+            Not recorded
+        {% endif %}
+    </p>
+
+    <p class="mb-1">
+        <strong>Gender:</strong>
+        {% if animal.gender %}
+            {{ animal.get_gender_display }}
+        {% else %}
+            Not recorded
+        {% endif %}
+    </p>
+
+    <p class="mb-1">
+        <strong>Health Status:</strong>
+        {% if animal.health_status %}
+            {{ animal.health_status }}
+        {% else %}
+            Not recorded
+        {% endif %}
+    </p>
+
+    <p class="mb-1">
+        <strong>Care Notes:</strong>
+        {% if animal.treatment_notes %}
+            {{ animal.treatment_notes }}
+        {% else %}
+            Not recorded
+        {% endif %}
+    </p>
+
+    <p class="mb-1">
+        <strong>Vet / Clinic Information:</strong>
+        {% if animal.vet_info %}
+            {{ animal.vet_info }}
+        {% else %}
+            Not provided
+        {% endif %}
+    </p>
+
+    <hr>
+
+    <p class="mb-1">
+        <strong>Animal Care Status:</strong>
         {% if animal.treatment_status == 'UNDER_TREATMENT' %}
             <span class="badge bg-info text-dark">Under Treatment</span>
         {% elif animal.treatment_status == 'RECOVERING' %}
@@ -330,6 +394,12 @@
             Not set
         {% endif %}
     </p>
+
+    {% if animal.outcome_notes %}
+        <p class="mb-1">
+            <strong>Outcome Notes:</strong> {{ animal.outcome_notes }}
+        </p>
+    {% endif %}
 
     <p class="mb-0">
         <strong>Last Updated:</strong> {{ animal.updated_at|date:"d M Y, h:i A" }}

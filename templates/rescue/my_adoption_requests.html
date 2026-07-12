@@ -39,6 +39,10 @@
                         </h5>
 
                         <p class="mb-1">
+                            <strong>Original Report ID:</strong> #{{ adoption_request.animal.report.id }}
+                        </p>
+
+                        <p class="mb-1">
                             <strong>Animal Type:</strong>
                             {{ adoption_request.animal.report.get_animal_type_display }}
                             {% if adoption_request.animal.report.other_animal_type %}
@@ -67,7 +71,7 @@
                         </p>
 
                         <p class="mb-1">
-                            <strong>Animal Current Status:</strong>
+                            <strong>Animal Care Status:</strong>
                             {% if adoption_request.animal.treatment_status == 'ADOPTED' %}
                                 <span class="badge bg-primary">Adopted</span>
                             {% elif adoption_request.animal.treatment_status == 'READY_FOR_ADOPTION' %}

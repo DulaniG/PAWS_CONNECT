@@ -95,7 +95,16 @@
                             </p>
 
                             <p class="mb-1">
-                                <strong>Final Priority:</strong> {{ report.get_priority_display }}
+                                <strong>Final Priority:</strong>
+                                {% if report.priority == 'HIGH' %}
+                                    <span class="badge bg-danger">High</span>
+                                {% elif report.priority == 'MEDIUM' %}
+                                    <span class="badge bg-warning text-dark">Medium</span>
+                                {% elif report.priority == 'LOW' %}
+                                    <span class="badge bg-success">Low</span>
+                                {% else %}
+                                    <span class="text-muted">Not set</span>
+                                {% endif %}
                             </p>
 
                             <p class="mb-1">
@@ -125,7 +134,7 @@
 
                             {% if stage_key == 'handover' %}
                                 <p class="mb-1">
-                                    <strong>Treatment Status:</strong>
+                                    <strong>Animal Care Status:</strong>
                                     {% if report.animal %}
                                         {{ report.animal.get_treatment_status_display }}
                                     {% else %}

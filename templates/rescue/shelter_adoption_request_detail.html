@@ -36,6 +36,19 @@
         </p>
 
         <p class="mb-1">
+            <strong>Original Report ID:</strong> #{{ adoption_request.animal.report.id }}
+        </p>
+
+        <div class="alert alert-secondary mt-3 mb-3">
+            This adoption request is linked to the original rescue case.
+            Open the full case record to view the report, rescue updates, animal care details, and adoption outcome together.
+        </div>
+
+        <a href="/rescue/shelter/reports/{{ adoption_request.animal.report.id }}/" class="btn btn-outline-paws w-100 mb-3">
+            View Full Case Record
+        </a>
+
+        <p class="mb-1">
             <strong>Animal Type:</strong>
             {{ adoption_request.animal.report.get_animal_type_display }}
             {% if adoption_request.animal.report.other_animal_type %}
@@ -58,7 +71,7 @@
         </p>
 
         <p class="mb-1">
-            <strong>Treatment Status:</strong>
+            <strong>Animal Care Status:</strong>
             {% if adoption_request.animal.treatment_status == 'READY_FOR_ADOPTION' %}
                 <span class="badge bg-success">Ready for Adoption</span>
             {% elif adoption_request.animal.treatment_status == 'ADOPTED' %}
@@ -80,7 +93,7 @@
         </p>
 
         <p class="mb-1">
-            <strong>Treatment Notes:</strong>
+            <strong>Care Notes:</strong>
             {% if adoption_request.animal.treatment_notes %}
                 {{ adoption_request.animal.treatment_notes }}
             {% else %}
@@ -188,7 +201,7 @@
             {% if adoption_request.animal.treatment_status == 'READY_FOR_ADOPTION' %}
 
                 <div class="alert alert-info">
-                    Approving this request will change the animal status to <strong>Adopted</strong>.
+                    Approving this request will change the animal care status to <strong>Adopted</strong>.
                 </div>
 
                 <form method="POST" novalidate>

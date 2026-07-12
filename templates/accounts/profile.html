@@ -59,6 +59,7 @@
                 <div class="mb-3">
                     <label class="form-label">Full Name</label>
                     {{ form.full_name }}
+
                     {% for error in form.full_name.errors %}
                         <div class="text-danger small">{{ error }}</div>
                     {% endfor %}
@@ -67,6 +68,7 @@
                 <div class="mb-3">
                     <label class="form-label">Email Address</label>
                     {{ form.email }}
+
                     {% for error in form.email.errors %}
                         <div class="text-danger small">{{ error }}</div>
                     {% endfor %}
@@ -80,6 +82,10 @@
                         <div class="form-text">
                             Required for rescuer accounts so shelters can contact you about assigned cases.
                         </div>
+                    {% elif user.role == 'SHELTER' %}
+                        <div class="form-text">
+                            Required for shelter accounts so rescuers and approved adopters can contact the shelter.
+                        </div>
                     {% else %}
                         <div class="form-text">
                             Optional contact number.
@@ -91,13 +97,13 @@
                     {% endfor %}
                 </div>
 
-                <div class="mb-4">
+                <div class="mb-3">
                     <label class="form-label">Service Area</label>
                     {{ form.service_area }}
 
                     {% if user.role == 'SHELTER' %}
                         <div class="form-text">
-                            Required for shelter accounts. Example: Colombo, Kandy, Jaffna.
+                            Required for shelter accounts. Example: Kottawa, Maharagama, Homagama.
                         </div>
                     {% else %}
                         <div class="form-text">
@@ -109,6 +115,34 @@
                         <div class="text-danger small">{{ error }}</div>
                     {% endfor %}
                 </div>
+
+                {% if user.role == 'SHELTER' %}
+                    <div class="mb-3">
+                        <label class="form-label">Shelter Address / Handover Location</label>
+                        {{ form.shelter_address }}
+
+                        <div class="form-text">
+                            Required for shelter accounts. This is shown to approved adopters for adoption handover.
+                        </div>
+
+                        {% for error in form.shelter_address.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Shelter Map Link</label>
+                        {{ form.shelter_map_link }}
+
+                        <div class="form-text">
+                            Required for shelter accounts. Add a Google Maps or Apple Maps link so rescuers and approved adopters can find the shelter location easily.
+                        </div>
+
+                        {% for error in form.shelter_map_link.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
 
                 <div class="d-flex flex-column flex-md-row gap-3">
                     <button type="submit" class="btn btn-paws">

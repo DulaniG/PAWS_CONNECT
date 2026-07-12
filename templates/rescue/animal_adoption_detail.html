@@ -34,6 +34,10 @@
     </p>
 
     <p class="mb-1">
+        <strong>Original Report ID:</strong> #{{ animal.report.id }}
+    </p>
+
+    <p class="mb-1">
         <strong>Animal Type:</strong>
         {{ animal.report.get_animal_type_display }}
         {% if animal.report.other_animal_type %}
@@ -55,7 +59,7 @@
     </p>
 
     <p class="mb-1">
-        <strong>Treatment Status:</strong>
+        <strong>Animal Care Status:</strong>
         <span class="badge bg-success">Ready for Adoption</span>
     </p>
 
@@ -69,7 +73,7 @@
     </p>
 
     <p class="mb-1">
-        <strong>Treatment Notes:</strong>
+        <strong>Care Notes:</strong>
         {% if animal.treatment_notes %}
             {{ animal.treatment_notes }}
         {% else %}

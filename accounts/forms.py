@@ -71,7 +71,7 @@ class UserRegistrationForm(UserCreationForm):
             }),
             'shelter_map_link': forms.URLInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Optional Google Maps or Apple Maps link'
+                'placeholder': 'Required Google Maps or Apple Maps link'
             }),
         }
 
@@ -107,6 +107,7 @@ class UserRegistrationForm(UserCreationForm):
         phone_number = cleaned_data.get('phone_number')
         service_area = cleaned_data.get('service_area')
         shelter_address = cleaned_data.get('shelter_address')
+        shelter_map_link = cleaned_data.get('shelter_map_link')
         linked_shelter = cleaned_data.get('linked_shelter')
 
         if role in ['RESCUER', 'SHELTER'] and not phone_number:
@@ -128,6 +129,12 @@ class UserRegistrationForm(UserCreationForm):
                     'Shelter address / handover location is required for shelter accounts.'
                 )
 
+            if not shelter_map_link:
+                self.add_error(
+                    'shelter_map_link',
+                    'Shelter map link is required for shelter accounts.'
+                )
+
         if role == 'RESCUER' and not linked_shelter:
             self.add_error(
                 'linked_shelter',
@@ -140,7 +147,6 @@ class UserRegistrationForm(UserCreationForm):
         user = super().save(commit=False)
 
         role = self.cleaned_data.get('role')
-
         user.role = role
 
         if role == 'PUBLIC':
@@ -220,12 +226,50 @@ class UserProfileUpdateForm(forms.ModelForm):
                 'class': 'form-control'
             }),
             'shelter_address': forms.TextInput(attrs={
-                'class': 'form-control'
+                'class': 'form-control',
+                'placeholder': 'Enter shelter handover address'
             }),
             'shelter_map_link': forms.URLInput(attrs={
-                'class': 'form-control'
+                'class': 'form-control',
+                'placeholder': 'Required Google Maps or Apple Maps link'
             }),
         }
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        role = self.instance.role
+        phone_number = cleaned_data.get('phone_number')
+        service_area = cleaned_data.get('service_area')
+        shelter_address = cleaned_data.get('shelter_address')
+        shelter_map_link = cleaned_data.get('shelter_map_link')
+
+        if role in ['RESCUER', 'SHELTER'] and not phone_number:
+            self.add_error(
+                'phone_number',
+                'Phone number is required for rescuer and shelter accounts.'
+            )
+
+        if role == 'SHELTER':
+            if not service_area:
+                self.add_error(
+                    'service_area',
+                    'Service area is required for shelter accounts.'
+                )
+
+            if not shelter_address:
+                self.add_error(
+                    'shelter_address',
+                    'Shelter address / handover location is required for shelter accounts.'
+                )
+
+            if not shelter_map_link:
+                self.add_error(
+                    'shelter_map_link',
+                    'Shelter map link is required for shelter accounts.'
+                )
+
+        return cleaned_data
 
 
 class UserReportForm(forms.ModelForm):
@@ -259,6 +303,6 @@ class UserReportForm(forms.ModelForm):
             raise forms.ValidationError('Please explain why you are reporting this account.')
 
         if len(description.strip()) < 20:
-            raise forms.ValidationError('Please write at least 20 characters explaining the issue.')
+            raise forms.ValidationError('Please provide at least 20 characters explaining the issue.')
 
         return description

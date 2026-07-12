@@ -39,6 +39,7 @@ def report_animal_view(request):
                 message=(
                     f'A new animal report has been submitted by '
                     f'{request.user.full_name or request.user.username}. '
+                    f'Report ID: #{report.id}. '
                     f'Suggested priority: {report.get_suggested_priority_display()}.'
                 ),
                 target_url='/rescue/shelter/reports/'
@@ -253,6 +254,14 @@ def shelter_report_detail_view(request, report_id):
     except Animal.DoesNotExist:
         animal = None
 
+    animal_final_status = (
+        animal is not None
+        and animal.treatment_status in ['ADOPTED', 'PASSED_AWAY']
+    )
+
+    if report.current_rescue_status == 'HANDED_OVER_TO_SHELTER' and not animal_final_status:
+        return redirect('animal_treatment_detail', report_id=report.id)
+
     approved_adoption_request = None
     if animal:
         approved_adoption_request = animal.adoption_requests.filter(
@@ -266,12 +275,8 @@ def shelter_report_detail_view(request, report_id):
         ).first()
 
     is_completed_case = (
-        report.report_status == 'CLOSED'
-        or report.current_rescue_status == 'UNABLE_TO_LOCATE'
-        or (
-            animal is not None
-            and animal.treatment_status in ['ADOPTED', 'PASSED_AWAY']
-        )
+        report.current_rescue_status == 'UNABLE_TO_LOCATE'
+        or animal_final_status
     )
 
     previous_verification_status = report.verification_status
@@ -305,6 +310,7 @@ def shelter_report_detail_view(request, report_id):
                 message=(
                     f'Your animal report has been reviewed by '
                     f'{request.user.full_name or request.user.username}. '
+                    f'Report ID: #{reviewed_report.id}. '
                     f'Final priority: {reviewed_report.get_priority_display()}.'
                 ),
                 target_url=reverse('my_report_detail', args=[reviewed_report.id])
@@ -393,6 +399,7 @@ def assign_rescuer_view(request, report_id):
                     notification_type='CASE_ASSIGNED',
                     title='Rescue Case Reassigned',
                     message=(
+                        f'Report ID: #{report.id}. '
                         'This rescue case has been reassigned and removed from your active cases.'
                     ),
                     target_url=reverse('rescuer_assigned_cases')
@@ -405,6 +412,7 @@ def assign_rescuer_view(request, report_id):
                     message=(
                         f'A rescue case has been assigned to you by '
                         f'{request.user.full_name or request.user.username}. '
+                        f'Report ID: #{report.id}. '
                         f'Priority: {report.get_priority_display()}.'
                     ),
                     target_url=reverse('rescuer_case_detail', args=[report.id])
@@ -416,6 +424,7 @@ def assign_rescuer_view(request, report_id):
                     title='Rescue Case Reassigned',
                     message=(
                         'Your animal rescue case has been reassigned to another rescuer. '
+                        f'Report ID: #{report.id}. '
                         f'Current rescue status: {report.get_current_rescue_status_display()}.'
                     ),
                     target_url=reverse('my_report_detail', args=[report.id])
@@ -434,6 +443,7 @@ def assign_rescuer_view(request, report_id):
                     message=(
                         f'A new rescue case has been assigned to you by '
                         f'{request.user.full_name or request.user.username}. '
+                        f'Report ID: #{report.id}. '
                         f'Priority: {report.get_priority_display()}.'
                     ),
                     target_url=reverse('rescuer_case_detail', args=[report.id])
@@ -445,6 +455,7 @@ def assign_rescuer_view(request, report_id):
                     title='Rescue Case Assigned',
                     message=(
                         'Your animal report has been assigned to a rescuer. '
+                        f'Report ID: #{report.id}. '
                         f'Current rescue status: {report.get_current_rescue_status_display()}.'
                     ),
                     target_url=reverse('my_report_detail', args=[report.id])
@@ -524,9 +535,16 @@ def rescuer_case_detail_view(request, report_id):
 
     report = get_object_or_404(
         Report,
-        id=report_id,
-        assigned_rescuer=request.user
-    )
+        id=report_id
+        )
+
+    if report.assigned_rescuer != request.user:
+        messages.info(
+            request,
+            f'You no longer have access to Report ID: #{report.id}. This rescue case may have been reassigned to another rescuer.'
+            )
+
+        return redirect('rescuer_assigned_cases')
 
     is_completed_case = report.current_rescue_status in [
         'HANDED_OVER_TO_SHELTER',
@@ -560,6 +578,7 @@ def rescuer_case_detail_view(request, report_id):
                 notification_type='RESCUE_UPDATE',
                 title='Rescue Status Updated',
                 message=(
+                    f'Report ID: #{report.id}. '
                     f'The rescue status for your animal report was updated to '
                     f'{rescue_update.get_status_display()}.'
                 ),
@@ -572,11 +591,12 @@ def rescuer_case_detail_view(request, report_id):
                     notification_type='RESCUE_UPDATE',
                     title='Rescue Case Updated',
                     message=(
+                        f'Report ID: #{report.id}. '
                         f'{request.user.full_name or request.user.username} updated the rescue case status to '
                         f'{rescue_update.get_status_display()}.'
-                    ),
-                    target_url=reverse('shelter_report_detail', args=[report.id])
-                )
+                        ),
+                        target_url=reverse('shelter_report_detail', args=[report.id])
+                    )
 
             messages.success(
                 request,
@@ -657,9 +677,10 @@ def animal_treatment_detail_view(request, report_id):
             create_notification(
                 user=report.reporter,
                 notification_type='TREATMENT_UPDATE',
-                title='Treatment Status Updated',
+                title='Animal Care Status Updated',
                 message=(
-                    f'The treatment status for your reported animal has been updated to '
+                    f'Report ID: #{report.id}. '
+                    f'The animal care status for your reported animal has been updated to '
                     f'{treatment_record.get_treatment_status_display()}.'
                 ),
                 target_url=reverse('my_report_detail', args=[report.id])
@@ -751,6 +772,7 @@ def animal_adoption_detail_view(request, animal_id):
                 message=(
                     f'{request.user.full_name or request.user.username} submitted an adoption request '
                     f'for {animal.name or animal.report.get_animal_type_display()}.'
+                    f'Report ID: #{animal.report.id}.'
                 ),
                 target_url=reverse('shelter_adoption_request_detail', args=[adoption_request.id])
             )
@@ -889,7 +911,8 @@ def shelter_adoption_request_detail_view(request, request_id):
                         title='Adoption Request Rejected',
                         message=(
                             f'Your adoption request for {animal.name or animal.report.get_animal_type_display()} '
-                            'was rejected because another request was approved.'
+                            f'was rejected because another request was approved. '
+                            f'Report ID: #{animal.report.id}.'
                         ),
                         target_url=reverse('my_adoption_request_detail', args=[other_request.id])
                     )
@@ -900,7 +923,8 @@ def shelter_adoption_request_detail_view(request, request_id):
                     title='Adoption Request Approved',
                     message=(
                         f'Your adoption request for {animal.name or animal.report.get_animal_type_display()} '
-                        'has been approved. Please open the request details to view adoption handover information.'
+                        f'has been approved. Report ID: #{animal.report.id}. '
+                        'Please open the request details to view adoption handover information.'
                     ),
                     target_url=reverse('my_adoption_request_detail', args=[decision.id])
                 )
@@ -917,7 +941,7 @@ def shelter_adoption_request_detail_view(request, request_id):
                     title='Adoption Request Rejected',
                     message=(
                         f'Your adoption request for {animal.name or animal.report.get_animal_type_display()} '
-                        'has been rejected by the shelter.'
+                        f'has been rejected by the shelter. Report ID: #{animal.report.id}.'
                     ),
                     target_url=reverse('my_adoption_request_detail', args=[decision.id])
                 )

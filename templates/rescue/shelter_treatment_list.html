@@ -75,7 +75,7 @@
 
                         {% if report.animal %}
                             <p class="mb-1">
-                                <strong>Treatment Status:</strong>
+                                <strong>Animal Care Status:</strong>
                                 {% if report.animal.treatment_status == 'UNDER_TREATMENT' %}
                                     <span class="badge bg-info text-dark">Under Treatment</span>
                                 {% elif report.animal.treatment_status == 'RECOVERING' %}
@@ -90,7 +90,7 @@
                             </p>
                         {% else %}
                             <p class="mb-1">
-                                <strong>Treatment Status:</strong>
+                                <strong>Animal Care Status:</strong>
                                 <span class="badge bg-warning text-dark">Not Started</span>
                             </p>
                         {% endif %}
