@@ -539,7 +539,7 @@ def rescuer_case_detail_view(request, report_id):
         )
 
     if report.assigned_rescuer != request.user:
-        messages.info(
+        messages.warning(
             request,
             f'You no longer have access to Report ID: #{report.id}. This rescue case may have been reassigned to another rescuer.'
             )

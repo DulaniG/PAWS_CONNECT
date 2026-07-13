@@ -64,6 +64,24 @@ class CustomUserAdmin(UserAdmin):
         'suspend_accounts',
     ]
 
+    def save_model(self, request, obj, form, change):
+        previous_status = None
+
+        if change and obj.pk:
+            previous_status = User.objects.filter(pk=obj.pk).values_list(
+                'account_status',
+                flat=True
+            ).first()
+
+        super().save_model(request, obj, form, change)
+
+        if (
+            previous_status is not None
+            and previous_status != obj.account_status
+            and obj.account_status in ['APPROVED', 'REJECTED', 'SUSPENDED']
+        ):
+            obj.send_account_status_email()
+
     def approve_accounts(self, request, queryset):
         updated_count = 0
 

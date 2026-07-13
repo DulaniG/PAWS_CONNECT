@@ -1,0 +1,43 @@
+{% extends "admin/base_site.html" %}
+
+{% block branding %}
+    <div>
+        <h1 id="site-name" style="margin-bottom: 10px;">
+            <a href="{% url 'admin:index' %}">
+                PAWS CONNECT Administration
+            </a>
+        </h1>
+
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px;">
+            <a href="/accounts/dashboard/"
+               style="
+                   display: inline-block;
+                   background-color: #b9652d;
+                   color: #ffffff !important;
+                   padding: 8px 16px;
+                   border-radius: 22px;
+                   font-weight: 700;
+                   text-decoration: none;
+                   border: 2px solid #ffffff;
+                   font-size: 13px;
+               ">
+                Back to PAWS CONNECT Dashboard
+            </a>
+
+            <a href="/"
+               style="
+                   display: inline-block;
+                   background-color: #ffffff;
+                   color: #8f3f12 !important;
+                   padding: 8px 16px;
+                   border-radius: 22px;
+                   font-weight: 700;
+                   text-decoration: none;
+                   border: 2px solid #b9652d;
+                   font-size: 13px;
+               ">
+                Back to PAWS CONNECT Home
+            </a>
+        </div>
+    </div>
+{% endblock %}

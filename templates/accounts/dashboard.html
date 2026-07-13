@@ -230,15 +230,44 @@
     <div class="row g-4">
         <div class="col-md-4">
             <div class="paws-card paws-action-card h-100">
-                <h5 class="paws-heading">Admin Panel</h5>
+                <h5 class="paws-heading">User Management</h5>
                 <p class="paws-subtitle">
-                    Manage users, verify rescuer and shelter accounts, and monitor the system.
+                    Manage users, approve rescuer and shelter accounts, and update account status.
                 </p>
-                <a href="/admin/" class="btn btn-paws">Open Admin Panel</a>
+                <a href="/admin/accounts/user/" class="btn btn-paws">Open User Management</a>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="paws-card paws-action-card h-100">
+                <h5 class="paws-heading">Pending Accounts</h5>
+                <p class="paws-subtitle">
+                    Review rescuer and shelter accounts waiting for administrator approval.
+                </p>
+                <a href="/admin/accounts/user/" class="btn btn-paws">Review Pending Accounts</a>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="paws-card paws-action-card h-100">
+                <h5 class="paws-heading">Account Safety Reports</h5>
+                <p class="paws-subtitle">
+                    Review suspicious or unsafe account reports submitted by users.
+                </p>
+                <a href="/admin/accounts/userreport/" class="btn btn-paws">View Safety Reports</a>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="paws-card paws-action-card h-100">
+                <h5 class="paws-heading">System Records</h5>
+                <p class="paws-subtitle">
+                    View animal reports, rescue updates, animals, and adoption requests.
+                </p>
+                <a href="/admin/rescue/" class="btn btn-paws">Open System Records</a>
             </div>
         </div>
     </div>
-
 {% endif %}
 
 {% endblock %}
