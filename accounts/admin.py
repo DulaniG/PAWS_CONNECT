@@ -66,15 +66,18 @@ class CustomUserAdmin(UserAdmin):
 
     def save_model(self, request, obj, form, change):
         previous_status = None
-
+        
         if change and obj.pk:
             previous_status = User.objects.filter(pk=obj.pk).values_list(
                 'account_status',
                 flat=True
             ).first()
-
+            
+        # Keep Django's is_active flag consistent with the selected account status.
+        obj.is_active = (obj.account_status == 'APPROVED')
+        
         super().save_model(request, obj, form, change)
-
+        
         if (
             previous_status is not None
             and previous_status != obj.account_status
@@ -171,6 +174,7 @@ class UserReportAdmin(admin.ModelAdmin):
     readonly_fields = (
         'created_at',
         'updated_at',
+        'reviewed_by',
         'reviewed_at',
     )
 
@@ -210,6 +214,21 @@ class UserReportAdmin(admin.ModelAdmin):
         'mark_as_dismissed',
         'suspend_reported_users',
     ]
+
+    def save_model(self, request, obj, form, change):
+        if (
+            obj.status in ['REVIEWED', 'ACTION_TAKEN', 'DISMISSED']
+            and obj.reviewed_by is None
+        ):
+            obj.reviewed_by = request.user
+            
+        if (
+            obj.status in ['REVIEWED', 'ACTION_TAKEN', 'DISMISSED']
+            and obj.reviewed_at is None
+        ):
+            obj.reviewed_at = timezone.now()
+            
+        super().save_model(request, obj, form, change)
 
     def reported_user_role(self, obj):
         return obj.reported_user.get_role_display()

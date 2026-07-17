@@ -40,12 +40,27 @@ def login_view(request):
         if form.is_valid():
             user = form.get_user()
 
-            if not user.is_superuser and user.account_status != 'APPROVED':
-                messages.error(
-                    request,
-                    'Your account is not approved yet. Please wait for administrator approval.'
-                )
-                return redirect('login')
+            if not user.is_superuser:
+                if user.account_status == 'PENDING':
+                    messages.error(
+                        request,
+                        'Your account is pending administrator approval. Please wait until your account has been reviewed.'
+                    )
+                    return redirect('login')
+                
+                if user.account_status == 'SUSPENDED':
+                    messages.error(
+                        request,
+                        'Your account has been suspended. Please contact the PAWS CONNECT administrator for further assistance.'
+                    )
+                    return redirect('login')
+                
+                if user.account_status == 'REJECTED':
+                    messages.error(
+                        request,
+                        'Your account registration was rejected. Please contact the PAWS CONNECT administrator for further information.'
+                    )
+                    return redirect('login')
 
             login(request, user)
             return redirect('dashboard')
