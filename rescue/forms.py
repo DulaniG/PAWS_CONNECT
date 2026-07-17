@@ -63,6 +63,12 @@ class ReportForm(forms.ModelForm):
             }),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        self.fields['animal_type'].choices = self.fields['animal_type'].choices[1:]
+        self.fields['condition'].choices = self.fields['condition'].choices[1:]
+
     def clean(self):
         cleaned_data = super().clean()
 
@@ -129,9 +135,15 @@ class ReportReviewForm(forms.ModelForm):
             'verification_notes': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 4,
-                'placeholder': 'Example: Called reporter. Animal is still near the location.'
+                'placeholder': 'Example: The reporter confirmed that the animal had already been rescued before the shelter could assign a rescuer.'
             }),
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        self.fields['priority'].choices = self.fields['priority'].choices[1:]
+        self.fields['verification_status'].choices = self.fields['verification_status'].choices[1:]
 
     def clean(self):
         cleaned_data = super().clean()
@@ -142,16 +154,25 @@ class ReportReviewForm(forms.ModelForm):
         if not priority:
             self.add_error(
                 'priority',
-                'Final priority is required before the report can move to Reviewed Reports.'
+                'Final priority is required before saving the shelter review.'
             )
 
-        if verification_status != 'CONFIRMED_STILL_THERE':
+        if verification_status == 'PENDING_VERIFICATION':
             self.add_error(
                 'verification_status',
-                'Set verification status to Confirmed Still There before the report can move to Reviewed Reports.'
+                'Please select a verification outcome before saving the shelter review.'
             )
 
         return cleaned_data
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        self.fields['verification_status'].choices = [
+            ('CONFIRMED_STILL_THERE', 'Confirmed Still There'),
+            ('ANIMAL_NOT_FOUND', 'Animal Not Found'),
+            ('ALREADY_RESCUED', 'Already Rescued'),
+        ]
 
 
 class RescueAssignmentForm(forms.ModelForm):
@@ -235,6 +256,11 @@ class RescueUpdateForm(forms.ModelForm):
                 'accept': 'image/*'
             }),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        self.fields['status'].choices = self.fields['status'].choices[1:]
 
     def clean_update_text(self):
         update_text = self.cleaned_data.get('update_text')
@@ -338,6 +364,12 @@ class AnimalTreatmentForm(forms.ModelForm):
                 'placeholder': 'Required if the animal passed away. Optional for other outcomes.'
             }),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        self.fields['gender'].choices = self.fields['gender'].choices[1:]
+        self.fields['treatment_status'].choices = self.fields['treatment_status'].choices[1:]
 
     def clean(self):
         cleaned_data = super().clean()
@@ -448,3 +480,6 @@ class AdoptionDecisionForm(forms.ModelForm):
                 'placeholder': 'Optional notes explaining the adoption decision.'
             }),
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)

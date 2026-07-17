@@ -275,7 +275,8 @@ def shelter_report_detail_view(request, report_id):
         ).first()
 
     is_completed_case = (
-        report.current_rescue_status == 'UNABLE_TO_LOCATE'
+        report.report_status == 'CLOSED'
+        or report.current_rescue_status == 'UNABLE_TO_LOCATE'
         or animal_final_status
     )
 
@@ -295,8 +296,13 @@ def shelter_report_detail_view(request, report_id):
             reviewed_report = form.save(commit=False)
             reviewed_report.assigned_shelter = request.user
 
-            if reviewed_report.report_status == 'SUBMITTED':
-                reviewed_report.report_status = 'REVIEWED'
+            if reviewed_report.verification_status == 'CONFIRMED_STILL_THERE':
+                if reviewed_report.report_status == 'SUBMITTED':
+                    reviewed_report.report_status = 'REVIEWED'
+                    
+            else:
+                reviewed_report.report_status = 'CLOSED'
+                reviewed_report.assigned_rescuer = None
 
             if reviewed_report.verification_status != previous_verification_status:
                 reviewed_report.verified_at = timezone.now()
@@ -311,6 +317,7 @@ def shelter_report_detail_view(request, report_id):
                     f'Your animal report has been reviewed by '
                     f'{request.user.full_name or request.user.username}. '
                     f'Report ID: #{reviewed_report.id}. '
+                    f'Verification status: {reviewed_report.get_verification_status_display()}. '
                     f'Final priority: {reviewed_report.get_priority_display()}.'
                 ),
                 target_url=reverse('my_report_detail', args=[reviewed_report.id])
@@ -749,6 +756,11 @@ def animal_adoption_detail_view(request, animal_id):
         status__in=['PENDING', 'APPROVED']
     ).first()
 
+    previous_requests = AdoptionRequest.objects.filter(
+        animal=animal,
+        requester=request.user
+    ).order_by('-created_at')
+
     if request.method == 'POST':
         if existing_request:
             messages.warning(
@@ -790,6 +802,7 @@ def animal_adoption_detail_view(request, animal_id):
         'animal': animal,
         'form': form,
         'existing_request': existing_request,
+        'previous_requests': previous_requests,
     })
 
 

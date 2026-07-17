@@ -11,6 +11,19 @@
     </p>
 </div>
 
+{% if report.verification_status == 'ANIMAL_NOT_FOUND' %}
+    <div class="alert alert-info mb-4">
+        <strong>Completed Case</strong><br>
+        This rescue case was closed after shelter verification because the reported animal could not be located. No rescue or treatment record was created.
+    </div>
+
+{% elif report.verification_status == 'ALREADY_RESCUED' %}
+    <div class="alert alert-info mb-4">
+        <strong>Completed Case</strong><br>
+        This rescue case was closed after shelter verification because the reporter confirmed that the animal had already been rescued before rescue coordination. No rescue or treatment record was created.
+    </div>
+{% endif %}
+
 <div class="paws-card mb-4">
     <h5 class="paws-heading mb-3">1. Submitted Animal Report Details</h5>
 
@@ -72,14 +85,46 @@
 
     <p class="mb-1">
         <strong>Case Progress:</strong>
-        {% if report.report_status == 'SUBMITTED' %}
+        {% if animal %}
+            {% if animal.treatment_status == 'UNDER_TREATMENT' %}
+                Under Treatment
+            {% elif animal.treatment_status == 'RECOVERING' %}
+                Recovering
+            {% elif animal.treatment_status == 'READY_FOR_ADOPTION' %}
+                Ready for Adoption
+            {% elif animal.treatment_status == 'ADOPTED' %}
+                Completed Case
+            {% elif animal.treatment_status == 'PASSED_AWAY' %}
+                Completed Case
+            {% endif %}
+        
+        {% elif report.current_rescue_status == 'HANDED_OVER_TO_SHELTER' %}
+            Shelter Treatment In Progress
+        
+        {% elif report.current_rescue_status == 'RESCUED' %}
+            Animal Transporting to Shelter
+        
+        {% elif report.current_rescue_status == 'ON_THE_WAY' %}
+            Rescue In Progress
+            
+        {% elif report.current_rescue_status == 'UNABLE_TO_LOCATE' %}
+            Completed Case
+            
+        {% elif report.verification_status == 'ANIMAL_NOT_FOUND' %}
+            Completed Case
+
+        {% elif report.verification_status == 'ALREADY_RESCUED' %}
+            Completed Case
+        
+        {% elif report.report_status == 'SUBMITTED' %}
             Submitted for Shelter Review
+            
         {% elif report.report_status == 'REVIEWED' %}
             Reviewed by Shelter
+            
         {% elif report.report_status == 'ASSIGNED' %}
             Rescuer Assigned
-        {% elif report.report_status == 'CLOSED' %}
-            Rescue Done
+            
         {% else %}
             {{ report.get_report_status_display }}
         {% endif %}
@@ -259,10 +304,25 @@
         {% endif %}
 
     {% else %}
-        <p class="paws-subtitle mb-0">
-            Treatment tracking has not started yet. It will appear here after the animal is handed over to the shelter and the shelter starts a treatment record.
-        </p>
+    
+        {% if report.verification_status == 'ANIMAL_NOT_FOUND' %}
+            <p class="paws-subtitle mb-0">
+                No treatment record was created because this rescue case was closed during shelter verification after the reported animal could not be located.
+            </p>
+            
+        {% elif report.verification_status == 'ALREADY_RESCUED' %}
+            <p class="paws-subtitle mb-0">
+                No treatment record was created because the reporter confirmed that the animal had already been rescued before the shelter assigned a rescuer.
+            </p>
+            
+        {% else %}
+            <p class="paws-subtitle mb-0">
+                Treatment tracking has not started yet. It will appear here after the animal is handed over to the shelter and the shelter starts a treatment record.
+            </p>
     {% endif %}
+
+{% endif %}
+
 </div>
 
 {% if report.assigned_shelter or report.assigned_rescuer %}

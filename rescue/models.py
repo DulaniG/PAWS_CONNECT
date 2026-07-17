@@ -38,8 +38,8 @@ class Report(models.Model):
     VERIFICATION_STATUS_CHOICES = [
         ('PENDING_VERIFICATION', 'Pending Verification'),
         ('CONFIRMED_STILL_THERE', 'Confirmed Still There'),
-        ('ANIMAL_NOT_FOUND', 'Animal Not Found / Moved'),
-        ('ALREADY_RESCUED', 'Already Rescued'),
+        ('ANIMAL_NOT_FOUND', 'Animal Not Found'),
+        ('ALREADY_RESCUED', 'Already Rescued (Confirmed by Reporter)'),
     ]
 
     RESCUE_STATUS_CHOICES = [
@@ -245,7 +245,7 @@ class RescueUpdate(models.Model):
 
         if self.status in ['ON_THE_WAY', 'RESCUED']:
             self.report.report_status = 'ASSIGNED'
-
+            
         if self.status in ['UNABLE_TO_LOCATE', 'HANDED_OVER_TO_SHELTER']:
             self.report.report_status = 'CLOSED'
 

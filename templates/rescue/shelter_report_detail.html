@@ -19,7 +19,7 @@
         <h5 class="paws-heading mb-3">1. Case Summary</h5>
 
         <div class="alert alert-success">
-            This case is completed. Review, rescue, treatment, and adoption details are now kept as a read-only record.
+            This case is completed. All available case information is now kept as a read-only record.
         </div>
 
         <p class="mb-1">
@@ -29,7 +29,9 @@
         <p class="mb-1">
             <strong>Case Status:</strong>
             {% if report.report_status == 'CLOSED' %}
-                Closed
+                Completed Case
+            {% elif report.report_status == 'HANDED_OVER' %}
+                Shelter Treatment
             {% elif report.report_status == 'ASSIGNED' %}
                 Rescuer Assigned
             {% elif report.report_status == 'REVIEWED' %}
