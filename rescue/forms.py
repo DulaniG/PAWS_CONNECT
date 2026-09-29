@@ -37,7 +37,7 @@ class ReportForm(forms.ModelForm):
             'description': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 4,
-                'placeholder': 'Describe the animal condition and situation'
+                'placeholder': 'Example: The puppy is hiding under a parked vehicle and appears frightened but approachable.'
             }),
             'image': forms.ClearableFileInput(attrs={
                 'class': 'form-control',
@@ -65,6 +65,8 @@ class ReportForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        self.fields['image'].required = True
         
         self.fields['animal_type'].choices = self.fields['animal_type'].choices[1:]
         self.fields['condition'].choices = self.fields['condition'].choices[1:]

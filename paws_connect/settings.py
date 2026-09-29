@@ -29,7 +29,17 @@ SECRET_KEY = 'django-insecure-k6=h%p(1i-d0slcohw(r2bs$67^3s!rtobcs-zmme%_#3j8099
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "127.0.0.1",
+    "localhost",
+    "192.168.8.180",
+    ".ngrok-free.dev",
+    'testserver',
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://dry-emerald-subprime.ngrok-free.dev",
+]
 
 
 # Application definition

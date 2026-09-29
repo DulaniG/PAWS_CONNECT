@@ -59,6 +59,9 @@
                 <div class="mb-3">
                     <label class="form-label">Description</label>
                     {{ form.description }}
+                    <div class="form-text">
+                        Required. Describe the animal's current situation, behaviour, and any important details that may help the shelter or rescuer.
+                    </div>
                     {% for error in form.description.errors %}
                         <div class="text-danger small">{{ error }}</div>
                     {% endfor %}
@@ -68,7 +71,7 @@
                     <label class="form-label">Animal Image</label>
                     {{ form.image }}
                     <div class="form-text">
-                        Optional. JPG, PNG, or WEBP only. Maximum size: 5MB.
+                        Required. Upload a clear image of the animal to help shelters verify the report and rescuers identify the correct animal. JPG, PNG, or WEBP only. Maximum size: 5MB.
                     </div>
                     {% for error in form.image.errors %}
                         <div class="text-danger small">{{ error }}</div>
@@ -80,8 +83,12 @@
                 <h5 class="paws-heading mb-3">Location Details</h5>
 
                 <div class="mb-3">
-                    <button type="button" class="btn btn-outline-paws" onclick="getCurrentLocation()">
-                        Use My Current Location
+                    <button
+                        type="button"
+                        id="locationButton"
+                        class="btn btn-outline-paws"
+                        onclick="getCurrentLocation()">
+                        📍 Use My Current Location
                     </button>
                     <div class="form-text">
                         This fills latitude and longitude using the browser's location permission.
@@ -109,6 +116,9 @@
                 <div class="mb-3">
                     <label class="form-label">Location Description</label>
                     {{ form.location_description }}
+                    <div class="form-text">
+                        Required. Describe where the animal can be found (for example: Near Kottawa Bus Stand, beside the main entrance).
+                    </div>
                     {% for error in form.location_description.errors %}
                         <div class="text-danger small">{{ error }}</div>
                     {% endfor %}
@@ -163,16 +173,58 @@
             return;
         }
 
+        document.getElementById("id_latitude").readOnly = false;
+        document.getElementById("id_longitude").readOnly = false;
+        
         navigator.geolocation.getCurrentPosition(
             function(position) {
-                document.getElementById("id_latitude").value = position.coords.latitude.toFixed(6);
-                document.getElementById("id_longitude").value = position.coords.longitude.toFixed(6);
-            },
+                document.getElementById("id_latitude").value =
+                    position.coords.latitude.toFixed(6);
+                    
+                document.getElementById("id_longitude").value =
+                    position.coords.longitude.toFixed(6);
+
+                // Make coordinates read-only
+                document.getElementById("id_latitude").readOnly = true;
+                document.getElementById("id_longitude").readOnly = true;
+
+                // Update the button to show success
+                const button = document.getElementById("locationButton");
+                
+                button.innerHTML = "✔ Location Captured";
+                button.classList.remove("btn-outline-paws");
+                button.classList.add("btn-success");
+                button.disabled = true;
+
+},
+            
             function(error) {
-                alert("Unable to get your location. Please enter the location manually.");
+                let message = "";
+                
+                switch (error.code) {
+                    case error.PERMISSION_DENIED:
+                        message = "Location permission denied.";
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        message = "Location information unavailable.";
+                        break;
+                    case error.TIMEOUT:
+                        message = "Location request timed out.";
+                        break;
+                    default:
+                        message = "Unknown geolocation error.";
+                }
+                
+                alert(message);
+                console.log(error);
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
             }
-        );
-    }
+    );
+}
 </script>
 
 {% endblock %}
